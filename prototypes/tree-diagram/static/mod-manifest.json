@@ -6,31 +6,7 @@
     "icon": "icon.svg",
     "properties": [],
     "dataViewDefinition": {
-        "tooltip": { "enabled": true },
-        "colorAxis": {
-            "mode": "categorical",
-            "dropTarget": {
-                "icon": "Color",
-                "description": "Color by {0}"
-            }
-        },
-        "axes": [
-            {
-                "name": "X",
-                "mode": "categorical",
-                "placement": "bottom",
-                "dropTarget": {
-                    "icon": "XAxis3D",
-                    "description": "Use {0} on the mod's X-axis"
-                }
-            },
-            {
-                "name": "Y",
-                "mode": "continuous",
-                "allowMultipleMeasures": true,
-                "placement": "left"
-            }
-        ]
+        "tooltip": { "enabled": true }
     },
     "files": [
         "index.html",

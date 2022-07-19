@@ -1,6 +1,6 @@
-import { Data, Options, render } from "./render";
-import { buildColorSeries, Point } from "./series";
-import { DataView, Mod } from "spotfire-api";
+import { Options, render } from "./render";
+// import { buildNodeSeries } from "./series";
+import { DataView } from "spotfire-api";
 //var events = require("events");
 
 const Spotfire = window.Spotfire;
@@ -48,7 +48,7 @@ Spotfire.initialize(async (mod) => {
         // Add properties ...
         // curveType: ModProperty<string>,
     ) {
-        let data = await buildData(mod, dataView);
+        //let data = await buildData(mod, dataView);
 
         const config: Partial<Options> = {
             labelOffset: context.styling.scales.font.fontSize * 2
@@ -56,7 +56,7 @@ Spotfire.initialize(async (mod) => {
 
         await render(
             state,
-            data,
+            // data,
             windowSize,
             config,
             {
@@ -127,39 +127,22 @@ export function generalErrorHandler<T extends (dataView: Spotfire.DataView, ...a
     };
 }
 
-/**
- * Construct a data format suitable for consumption in d3.
- * @param mod The Mod API object
- * @param dataView The mod's DataView
- */
-async function buildData(mod: Mod, dataView: DataView): Promise<Data> {
-    const allRows = await dataView.allRows();
+// /**
+//  * Construct a data format suitable for consumption in d3.
+//  * @param mod The Mod API object
+//  * @param dataView The mod's DataView
+//  */
+// async function buildData(mod: Mod, dataView: DataView): Promise<Data> {
 
-    const allYValues: Array<number> = allRows!.map((row) => row.continuous<number>("Y").value() || 0);
-    const maxValue = Math.max(...allYValues);
-    const minValue = Math.min(0, ...allYValues);
+//     const dataTable = (await mod.visualization.mainTable());
+//     // const columns =  await dataTable.columns(); // Gets the data column names!
 
-    const xHierarchy = await dataView.hierarchy("X");
-
-    const colorLeaves = (await (await dataView.hierarchy("Color"))!.root())!.leaves();
-    const xHierarchyLeaves = (await xHierarchy!.root())!.leaves();
-
-    const xAxisData = xHierarchyLeaves.map((leaf) => leaf.formattedPath());
-
-    return {
-        clearMarking: dataView.clearMarking,
-        yDomain: { min: minValue, max: maxValue },
-        xScale: xAxisData,
-        series: buildColorSeries(
-            colorLeaves,
-            xHierarchyLeaves,
-            !(xHierarchy?.isEmpty ?? true),
-            createPointTooltip,
-            minValue
-        )
-    };
-
-    function createPointTooltip(point: Point) {
-        return point.tooltip();
-    }
-}
+//     return {
+//         clearMarking: dataView.clearMarking,
+//         nodes: buildNodeSeries(
+//             dataTable.id,
+//             dataTable.name,
+//             // Column names as DataViewHierarchyNode[] somehow
+//         )
+//     };
+// }

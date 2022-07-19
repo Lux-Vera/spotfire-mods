@@ -22,41 +22,17 @@ body {
     cursor: default;
 }
 
-.x-axis-labels-editable {
+.node{
+    stroke: #677085;
+    fill:#add8e6;
+}
+
+.node:hover {
     cursor: pointer;
 }
-svg {
-    display: block;
-}
 
-.line-hover {
-    fill: none;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
-
-.line-hover-fill {
-    pointer-events: none;
-    stroke: #fff;
-    stroke-width: 5px;
-}
-
-.line-hover-casing {
-    pointer-events: none;
-    stroke: #333;
-    stroke-width: 7px;
-}
-
-.line-hover-bg {
-    stroke: #333;
-    stroke-opacity: 0;
-    stroke-width: 7px;
-}
-
-.radar-circle:hover {
-    stroke: #333;
-    stroke-opacity: 1;
-    stroke-width: 1px;
+.node-leaf{
+    stroke-dasharray: 1;
 }
 
 .selection {

@@ -2,7 +2,6 @@
 import * as d3 from "d3";
 import { FontInfo, Size, Tooltip } from "spotfire-api";
 import { RenderState } from "./index";
-import { Serie, Point } from "./series";
 
 // type D3_SELECTION = d3.Selection<SVGGElement, unknown, HTMLElement, any>;
 // type D3_SERIE_SELECTION = d3.Selection<SVGGElement, Serie, SVGGElement | null, unknown>;
@@ -32,13 +31,63 @@ const defaultConfig: Options = {
     onLabelClick: null
 };
 
-export interface Data {
-    yDomain: { min: number; max: number };
-    xScale: string[];
-    series: Serie[];
-    clearMarking(): void;
-}
+// export interface Data {
+//     nodes: Nodes[];
+//     clearMarking(): void;
+// }
 
+var treeData = 
+{
+    "name": "Eve",
+    "value": 15,
+    "type": "black",
+    "children": [
+       {
+          "name": "Cain",
+          "value": 10,
+          "type": "grey"
+       },
+       {
+          "name": "Seth",
+          "value": 10,
+          "type": "grey",
+          "children": [
+             {
+                "name": "Enos",
+                "value": 7.5,
+                "type": "grey"
+             },
+             {
+                "name": "Noam",
+                "value": 7.5,
+                "type": "grey"
+             }
+          ]
+       },
+       {
+          "name": "Abel",
+          "value": 10,
+          "type": "grey"
+       },
+       {
+          "name": "Awan",
+          "value": 10,
+          "type": "grey",
+          "children": [
+             {
+                "name": "Enoch",
+                "value": 7.5,
+                "type": "grey"
+             }
+          ]
+       },
+       {
+          "name": "Azura",
+          "value": 10,
+          "type": "grey"
+       }
+    ]
+ };
 /**
  * Renders the chart.
  * @param {RenderState} state
@@ -50,7 +99,7 @@ export interface Data {
  */
 export async function render(
     state: RenderState,
-    data: Data,
+    //data: Data,
     windowSize: Size,
     config: Partial<Options>,
     styling: {
@@ -76,6 +125,8 @@ export async function render(
         ...config
     };
 
+    let data = treeData;
+
     /**
      * Calculating the position and size of the chart
      */
@@ -83,21 +134,10 @@ export async function render(
     const padding = 70;
     const height = Math.max(windowSize.height, cfg.minBoxSize);
 
-    /**
-     * Sets the viewBox to match windowSize
-     */
-    svg.attr("viewBox", `0, 0, ${width}, ${height}`);
-    svg.style("width", "100%");
-    svg.style("height", height + "px");
-    svg.selectAll("*").remove();
+    let tree = d3.tree().size([height, width]);
+    let nodes = d3.hierarchy(data, (d: any) => d.children);
 
-    
-    const colorSeries = data.series;
-
-    /**
-     * Drawing the chart
-     */
-    draw(colorSeries);
+    draw(tree(nodes));
 
     /**
      * Draw the rectangular selection
@@ -106,36 +146,45 @@ export async function render(
 
     /**
      * Draws a group.
-     * @param series - Data series
+     * @param nodes - Data nodes
      */
-    function draw(series: Serie[]) {
+    function draw(nodes: d3.HierarchyPointNode<unknown>) {
+
         /**
-         * Append a g element where the current group will be drawn.
-         * Translating the position of the chart according to the width and height of it
+         * Sets the viewBox to match windowSize
          */
+        svg.attr("viewBox", `0, 0, ${width}, ${height}`);
+        svg.style("width", "100%");
+        svg.style("height", height + "px");
+        svg.selectAll("*").remove();
+
         const svgChart = svg
             .append("g")
             .attr(
                 "transform",
                 "translate(" +
-                    (width + padding) +
+                    (padding) +
                     "," +
-                    (height + padding) +
+                    (padding/2) +
                     ")"
             );
 
-        /**
-         * Create a wrapper for the blobs
-         */
-        const svgNodes = svgChart
-            .selectAll(".node-blobs")
-            .data(series)
-            .enter()
-            .append("g")
-            .attr("class", "node-blobs");
+        const svgBranches = svgChart.selectAll(".branch")
+        .data(nodes.descendants().slice(1))
+        .enter();
+
+
+        drawBranches( svgBranches );
+
+        let svgNodes = svgChart.selectAll(".node")
+        .data(nodes.descendants())
+        .enter().append("g")
+        .attr("class", d => "node " + (d.children ? "node-internal"
+        : "node-leaf"))
+        .attr("transform", d => "translate(" + d.y + "," +
+        d.x + ")");
 
         drawNodes(svgNodes);
-        drawBranches( svgNodes );
     }
 
 
@@ -143,20 +192,44 @@ export async function render(
      * Draws the nodes
      * @param svgNodeBlobs - Wrapper for the blobs
      */
-    function drawNodes(svgNodeBlobs: d3.Selection<SVGGElement, Serie, SVGGElement, unknown>) {
+    function drawNodes(svgNodes: d3.Selection<SVGGElement, d3.HierarchyPointNode<unknown>, SVGGElement, unknown>) {
         /**
          * Create the nodes
          */
+
+         svgNodes.append("circle")
+         .attr("r", (d : any) => d.data.value);
+ 
+        svgNodes.append("text")
+            .attr("dy", ".35em")
+            .attr("x", (d : any) => d.children ? (d.data.value + 5) * -1 :
+                d.data.value + 5)
+            .attr("y", (d : any) => d.children && d.depth !== 0 ?
+                -(d.data.value + 5) : d)
+            .style("text-anchor", d => d.children ? "end" : "start")
+            .text((d : any) => d.data.name);
+     
     }
 
      /**
      * Draws the branches
-     * @param svgNodeBlobs - Wrapper for the blobs
+     * @param  - 
      */
-      function drawBranches(svgNodeBlobs: d3.Selection<SVGGElement, Serie, SVGGElement, unknown>) {
+      function drawBranches(svgBranches: d3.Selection<d3.EnterElement, d3.HierarchyPointNode<unknown>, SVGGElement, unknown>) {
         /**
          * Create the branches
          */
+        svgBranches
+         .append("path")
+         .attr("class", "branch")
+         .style("stroke", "black")
+         .style("fill", "none")
+         .attr("d", d => {
+             return "M" + d.y + "," + d.x
+                + "C" + (d.y + (d.parent?.y ? d.parent.y : 0) ) / 2 + "," + d.x
+                + " " + (d.y + (d.parent?.y ? d.parent.y : 0)) / 2 + "," + d.parent?.x
+                + " " + d.parent?.y + "," + d.parent?.x;
+         });
     }
     /**
      * Draws rectangular selection
@@ -187,25 +260,26 @@ export async function render(
                 ) {
                     return;
                 }
-                return data.clearMarking();
+                // return data.clearMarking();
+                return null;
             }
 
-            const selectionBox = rectangle.node()!.getBoundingClientRect();
-            const svgMarkedNodes = svg.selectAll<SVGCircleElement, Point>(".node-blobs").filter(function () {
-                const box = this.getBoundingClientRect();
-                return (
-                    box.x >= selectionBox.x &&
-                    box.y >= selectionBox.y &&
-                    box.x + box.width <= selectionBox.x + selectionBox.width &&
-                    box.y + box.height <= selectionBox.y + selectionBox.height
-                );
-            });
+            // const selectionBox = rectangle.node()!.getBoundingClientRect();
+            // const svgMarkedNodes = svg.selectAll<SVGCircleElement, Point>(".node-blobs").filter(function () {
+            //     const box = this.getBoundingClientRect();
+            //     return (
+            //         box.x >= selectionBox.x &&
+            //         box.y >= selectionBox.y &&
+            //         box.x + box.width <= selectionBox.x + selectionBox.width &&
+            //         box.y + box.height <= selectionBox.y + selectionBox.height
+            //     );S
+            // });
 
-            if (svgMarkedNodes.size() === 0) {
-                return data.clearMarking();
-            }
+            // if (svgMarkedNodes.size() === 0) {
+            //     return data.clearMarking();
+            // }
 
-            svgMarkedNodes.each(mark);
+            // svgMarkedNodes.each(mark);
         };
 
         svg.on("mousedown", function (this) {
@@ -231,7 +305,7 @@ export async function render(
     }
 }
 
-function mark(d: Serie | Point) {
-    d3.event.ctrlKey ? d.mark("ToggleOrAdd") : d.mark();
-}
+// function mark(d: Node ) {
+//     d3.event.ctrlKey ? d.mark("ToggleOrAdd") : d.mark();
+// }
 
