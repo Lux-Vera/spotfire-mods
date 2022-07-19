@@ -39,51 +39,42 @@ const defaultConfig: Options = {
 var treeData = 
 {
     "name": "Eve",
-    "value": 15,
     "type": "black",
     "children": [
        {
           "name": "Cain",
-          "value": 10,
           "type": "grey"
        },
        {
           "name": "Seth",
-          "value": 10,
           "type": "grey",
           "children": [
              {
                 "name": "Enos",
-                "value": 7.5,
                 "type": "grey"
              },
              {
                 "name": "Noam",
-                "value": 7.5,
                 "type": "grey"
              }
           ]
        },
        {
           "name": "Abel",
-          "value": 10,
           "type": "grey"
        },
        {
           "name": "Awan",
-          "value": 10,
           "type": "grey",
           "children": [
              {
                 "name": "Enoch",
-                "value": 7.5,
                 "type": "grey"
              }
           ]
        },
        {
           "name": "Azura",
-          "value": 10,
           "type": "grey"
        }
     ]
@@ -134,7 +125,10 @@ export async function render(
     const padding = 70;
     const height = Math.max(windowSize.height, cfg.minBoxSize);
 
-    let tree = d3.tree().size([height, width]);
+    let tree = d3.tree()
+        .nodeSize([30,70])
+        .separation(function(a, b) { return (a.parent == b.parent ? 1 : 2); })
+        .size([width-padding, height-padding]);
     let nodes = d3.hierarchy(data, (d: any) => d.children);
 
     draw(tree(nodes));
@@ -154,28 +148,27 @@ export async function render(
          * Sets the viewBox to match windowSize
          */
         svg.attr("viewBox", `0, 0, ${width}, ${height}`);
-        svg.style("width", "100%");
-        svg.style("height", height + "px");
+        svg.style("width", width);
+        svg.style("height", height);
         svg.selectAll("*").remove();
 
         const svgChart = svg
             .append("g")
-            .attr(
-                "transform",
-                "translate(" +
-                    (padding) +
-                    "," +
-                    (padding/2) +
-                    ")"
-            );
-
+            .attr("transform", "translate(" + padding + "," + 0 + ")");;
+        
+        /**
+         * Branches
+         */    
         const svgBranches = svgChart.selectAll(".branch")
         .data(nodes.descendants().slice(1))
         .enter();
 
-
+        console.log(svgBranches);
         drawBranches( svgBranches );
 
+        /**
+         * Nodes
+         */
         let svgNodes = svgChart.selectAll(".node")
         .data(nodes.descendants())
         .enter().append("g")
@@ -184,6 +177,7 @@ export async function render(
         .attr("transform", d => "translate(" + d.y + "," +
         d.x + ")");
 
+        console.log(svgNodes);
         drawNodes(svgNodes);
     }
 
@@ -198,7 +192,7 @@ export async function render(
          */
 
          svgNodes.append("circle")
-         .attr("r", (d : any) => d.data.value);
+         .attr("r", 10);
  
         svgNodes.append("text")
             .attr("dy", ".35em")
@@ -222,8 +216,6 @@ export async function render(
         svgBranches
          .append("path")
          .attr("class", "branch")
-         .style("stroke", "black")
-         .style("fill", "none")
          .attr("d", d => {
              return "M" + d.y + "," + d.x
                 + "C" + (d.y + (d.parent?.y ? d.parent.y : 0) ) / 2 + "," + d.x

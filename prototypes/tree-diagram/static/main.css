@@ -22,6 +22,11 @@ body {
     cursor: default;
 }
 
+.branch{
+    stroke: #677085;
+    fill: none;
+}
+
 .node{
     stroke: #677085;
     fill:#add8e6;
