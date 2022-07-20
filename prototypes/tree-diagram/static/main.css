@@ -23,21 +23,27 @@ body {
 }
 
 .branch{
-    stroke: #677085;
+    stroke: #b5b8c4;
     fill: none;
 }
 
 .node{
-    stroke: #677085;
-    fill:#add8e6;
-}
-
-.node:hover {
     cursor: pointer;
 }
 
-.node-leaf{
-    stroke-dasharray: 1;
+.node rect{
+    stroke: #b5b8c4;
+    fill:#fff;
+}
+
+.node text {
+    font: 12px sans-serif;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+.node-leaf rect{
+    stroke-dasharray: 3 2;
 }
 
 .selection {

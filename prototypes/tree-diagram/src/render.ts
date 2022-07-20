@@ -27,7 +27,7 @@ const defaultConfig: Options = {
     opacityLines: 0.3,
     strokeWidth: 2,
     labelOffset: 20,
-    minBoxSize: 300,
+    minBoxSize: 50,
     onLabelClick: null
 };
 
@@ -122,13 +122,12 @@ export async function render(
      * Calculating the position and size of the chart
      */
     const width = Math.max(windowSize.width, cfg.minBoxSize);
-    const padding = 70;
     const height = Math.max(windowSize.height, cfg.minBoxSize);
+    const padding = 70;
 
     let tree = d3.tree()
-        .nodeSize([30,70])
-        .separation(function(a, b) { return (a.parent == b.parent ? 1 : 2); })
-        .size([width-padding, height-padding]);
+        .size([height-(2*padding), width-(2*padding)]);
+
     let nodes = d3.hierarchy(data, (d: any) => d.children);
 
     draw(tree(nodes));
@@ -148,8 +147,8 @@ export async function render(
          * Sets the viewBox to match windowSize
          */
         svg.attr("viewBox", `0, 0, ${width}, ${height}`);
-        svg.style("width", width);
-        svg.style("height", height);
+        svg.style("width", '100%');
+        svg.style("height", '100%');
         svg.selectAll("*").remove();
 
         const svgChart = svg
@@ -160,10 +159,9 @@ export async function render(
          * Branches
          */    
         const svgBranches = svgChart.selectAll(".branch")
-        .data(nodes.descendants().slice(1))
+        .data(nodes.links())
         .enter();
 
-        console.log(svgBranches);
         drawBranches( svgBranches );
 
         /**
@@ -174,55 +172,71 @@ export async function render(
         .enter().append("g")
         .attr("class", d => "node " + (d.children ? "node-internal"
         : "node-leaf"))
+        .on("click", click)
         .attr("transform", d => "translate(" + d.y + "," +
         d.x + ")");
 
-        console.log(svgNodes);
+        // Toggle children on click.
+        function click(d : any) {
+            if (d.children) {
+            d._children = d.children;
+            d.children = null;
+            } else {
+            d.children = d._children;
+            d._children = null;
+            }
+            draw(d);
+        }
+
         drawNodes(svgNodes);
     }
+    
+     /**
+     * Draws the branches
+     * @param  - 
+     */
+      function drawBranches(svgBranches: d3.Selection<d3.EnterElement, d3.HierarchyPointLink<unknown>, SVGGElement, unknown>) {
+        /**
+         * Create the branches
+         */
 
+         var link = function link(d : any) {
+            return "M" + d.source.y + "," + d.source.x
+                + "C" + (d.source.y + d.target.y) / 2 + "," + d.source.x
+                + " " + (d.source.y + d.target.y) / 2 + "," + d.target.x
+                + " " + d.target.y + "," + d.target.x;
+          };
+
+        svgBranches
+         .append("path")
+         .attr("class", "branch")
+         .attr("d", link);
+    }
 
     /**
      * Draws the nodes
-     * @param svgNodeBlobs - Wrapper for the blobs
+     * @param svgNodes - 
      */
     function drawNodes(svgNodes: d3.Selection<SVGGElement, d3.HierarchyPointNode<unknown>, SVGGElement, unknown>) {
         /**
          * Create the nodes
          */
 
-         svgNodes.append("circle")
-         .attr("r", 10);
+        var nodeHeight = 21;
+        var nodeWidth = 67;
+        svgNodes.append("rect")
+         .attr("width", nodeWidth)
+         .attr("height", nodeHeight)
+         .attr("rx", 10)
+         .attr("y", -nodeHeight/2)
+         .attr("x", -nodeWidth/2);
  
         svgNodes.append("text")
             .attr("dy", ".35em")
-            .attr("x", (d : any) => d.children ? (d.data.value + 5) * -1 :
-                d.data.value + 5)
-            .attr("y", (d : any) => d.children && d.depth !== 0 ?
-                -(d.data.value + 5) : d)
-            .style("text-anchor", d => d.children ? "end" : "start")
+            .style("text-anchor", "middle")
             .text((d : any) => d.data.name);
-     
     }
 
-     /**
-     * Draws the branches
-     * @param  - 
-     */
-      function drawBranches(svgBranches: d3.Selection<d3.EnterElement, d3.HierarchyPointNode<unknown>, SVGGElement, unknown>) {
-        /**
-         * Create the branches
-         */
-        svgBranches
-         .append("path")
-         .attr("class", "branch")
-         .attr("d", d => {
-             return "M" + d.y + "," + d.x
-                + "C" + (d.y + (d.parent?.y ? d.parent.y : 0) ) / 2 + "," + d.x
-                + " " + (d.y + (d.parent?.y ? d.parent.y : 0)) / 2 + "," + d.parent?.x
-                + " " + d.parent?.y + "," + d.parent?.x;
-         });
-    }
     /**
      * Draws rectangular selection
      */
