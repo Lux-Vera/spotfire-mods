@@ -174,40 +174,43 @@ export async function render(
         /**
          * Compute the new tree layout
          */
-        var nodes = tree(root);
-        var links = nodes.links();
+        var treeLayout = tree(root);
+        var links = treeLayout.links();
+
+        /**
+         * Update links
+         */    
+        const link = svgChart.selectAll(".link")
+        .data(links, function(d:any) { return d.target.id; });
+
+        drawLinks(link.enter());
+
+        /**
+         * Transition links to new position
+         */ 
+        svgChart.selectAll(".link").transition()
+        .duration(duration)
+        .attr("d", diagonal);
+
+        exitLinks(link.exit());
 
         /**
          * Update nodes
          */
         var node = svgChart.selectAll(".node")
-        .data(nodes.descendants(), function(d:any) { return d.id || (d.id = ++i); });
+        .data(treeLayout.descendants(), function(d:any) { return d.id || (d.id = ++i); });
 
         drawNodes(node.enter());
 
-        // Transition nodes to their new position.
-        node
+        /**
+         * Transition nodes to new position
+         */ 
+        svgChart.selectAll(".node")
             .transition()
             .duration(duration)
-            .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
+            .attr("transform", function(d:any) { return "translate(" + d.y + "," + d.x + ")"; });
 
         exitNodes(node.exit());
-         
-        /**
-         * Branches
-         */    
-
-        const link = svgChart.selectAll(".link")
-            .data(links, function(d:any) { return d.target.id; });
- 
-        drawLinks(link.enter());
-
-         // Transition links to their new position.
-         link.transition()
-         .duration(duration)
-         .attr("d", diagonal);
-
-        exitLinks(link.exit());
     }
     
      /**
@@ -221,7 +224,7 @@ export async function render(
         link
          .append("path")
          .attr("class", "link")
-         .attr("d", diagonal);
+         .attr("d", d => diagonal({source: d.source, target: d.source}));
     }
 
     /**
@@ -248,7 +251,7 @@ export async function render(
          let nodesEnter = node
          .append("g")
          .attr("class", d => "node " + (d.children ? "node-internal" : "node-leaf"))
-         .attr("transform", d => "translate(" + d.y  + "," + d.x + ")")
+         .attr("transform", d => "translate(" + (d.parent ? d.parent.y : d.y)  + "," + (d.parent ? d.parent.x : d.x) + ")")
          .on("dblclick", click);
 
         var nodeHeight = 21;
