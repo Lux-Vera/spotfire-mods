@@ -128,9 +128,9 @@ export async function render(
     let tree = d3.tree()
         .size([height-(2*padding), width-(2*padding)]);
 
-    let nodes = d3.hierarchy(data, (d: any) => d.children);
+    let root = d3.hierarchy(data, (d: any) => d.children);
 
-    draw(tree(nodes));
+    draw(root);
 
     /**
      * Draw the rectangular selection
@@ -141,7 +141,7 @@ export async function render(
      * Draws a group.
      * @param nodes - Data nodes
      */
-    function draw(nodes: d3.HierarchyPointNode<unknown>) {
+    function draw(source: d3.HierarchyNode<unknown>) {
 
         /**
          * Sets the viewBox to match windowSize
@@ -150,6 +150,9 @@ export async function render(
         svg.style("width", '100%');
         svg.style("height", '100%');
         svg.selectAll("*").remove();
+
+        // Compute the new tree layout.
+        var nodes = tree(root);
 
         const svgChart = svg
             .append("g")
