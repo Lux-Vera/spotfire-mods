@@ -4,8 +4,7 @@ import { FontInfo, Size, Tooltip } from "spotfire-api";
 import { RenderState } from "./index";
 
 // type D3_SELECTION = d3.Selection<SVGGElement, unknown, HTMLElement, any>;
-// type D3_SERIE_SELECTION = d3.Selection<SVGGElement, Serie, SVGGElement | null, unknown>;
-
+// type D3_HIERARCHY_SELECTION = d3.Selection<SVGGElement | d3.EnterElement, d3.HierarchyPointNode<unknown> | d3.HierarchyPointLink<unknown>, SVGGElement, unknown>;
 /**
  * Main svg container
  */
@@ -124,13 +123,42 @@ export async function render(
     const width = Math.max(windowSize.width, cfg.minBoxSize);
     const height = Math.max(windowSize.height, cfg.minBoxSize);
     const padding = 70;
+    const duration = 750;
+    var i = 0;
 
-    let tree = d3.tree()
-        .size([height-(2*padding), width-(2*padding)]);
+    /**
+     * Sets the viewBox to match windowSize
+     */
+    svg.attr("viewBox", `0, 0, ${width}, ${height}`);
+    svg.style("width", '100%');
+    svg.style("height", '100%');
+    svg.selectAll("*").remove();
 
-    let root = d3.hierarchy(data, (d: any) => d.children);
+    const svgChart = svg
+            .append("g")
+            .attr("transform", "translate(" + padding + "," + 0 + ")");
 
-    draw(root);
+    /**
+     * Create tree layout
+     */
+    let tree = d3.tree().size([height-(2*padding), width-(2*padding)]);
+
+    var diagonal = function link(d : any) {
+        return "M" + d.source.y + "," + d.source.x
+            + "C" + (d.source.y + d.target.y) / 2 + "," + d.source.x
+            + " " + (d.source.y + d.target.y) / 2 + "," + d.target.x
+            + " " + d.target.y + "," + d.target.x;
+      };
+
+    let root : any = d3.hierarchy(data, (d: any) => d.children);
+
+    root.x0 = height / 2;
+    root.y0 = 0;
+
+    /**
+     * Update the graph
+     */
+    update(root);
 
     /**
      * Draw the rectangular selection
@@ -141,43 +169,101 @@ export async function render(
      * Draws a group.
      * @param nodes - Data nodes
      */
-    function draw(source: d3.HierarchyNode<unknown>) {
+    function update(source: any) {    
 
         /**
-         * Sets the viewBox to match windowSize
+         * Compute the new tree layout
          */
-        svg.attr("viewBox", `0, 0, ${width}, ${height}`);
-        svg.style("width", '100%');
-        svg.style("height", '100%');
-        svg.selectAll("*").remove();
-
-        // Compute the new tree layout.
         var nodes = tree(root);
+        var links = nodes.links();
 
-        const svgChart = svg
-            .append("g")
-            .attr("transform", "translate(" + padding + "," + 0 + ")");;
-        
+        /**
+         * Update nodes
+         */
+        var node = svgChart.selectAll(".node")
+        .data(nodes.descendants(), function(d:any) { return d.id || (d.id = ++i); });
+
+        drawNodes(node.enter());
+
+        // Transition nodes to their new position.
+        node
+            .transition()
+            .duration(duration)
+            .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
+
+        exitNodes(node.exit());
+         
         /**
          * Branches
          */    
-        const svgBranches = svgChart.selectAll(".branch")
-        .data(nodes.links())
-        .enter();
 
-        drawBranches( svgBranches );
+        const link = svgChart.selectAll(".link")
+            .data(links, function(d:any) { return d.target.id; });
+ 
+        drawLinks(link.enter());
 
+         // Transition links to their new position.
+         link.transition()
+         .duration(duration)
+         .attr("d", diagonal);
+
+        exitLinks(link.exit());
+    }
+    
+     /**
+      * Draws the links
+      * @param  - 
+      */
+      function drawLinks(link: d3.Selection<d3.EnterElement, d3.HierarchyPointLink<unknown>, SVGGElement, unknown>) {
         /**
-         * Nodes
+         * Create the branches
          */
-        let svgNodes = svgChart.selectAll(".node")
-        .data(nodes.descendants())
-        .enter().append("g")
-        .attr("class", d => "node " + (d.children ? "node-internal"
-        : "node-leaf"))
-        .on("click", click)
-        .attr("transform", d => "translate(" + d.y + "," +
-        d.x + ")");
+        link
+         .append("path")
+         .attr("class", "link")
+         .attr("d", diagonal);
+    }
+
+    /**
+      * Removes the branches
+      * @param  - 
+      */
+    function exitLinks(link: d3.Selection<d3.BaseType, d3.HierarchyPointLink<unknown>, SVGGElement, unknown>) {
+         // Transition exiting nodes to the parent's new position.
+         link
+         .transition()
+           .duration(duration)
+           .attr("d", d => diagonal({source: d.source, target: d.source}))
+           .remove();
+    }
+
+    /**
+     * Draws the nodes
+     * @param node - 
+     */
+    function drawNodes(node: d3.Selection<any, d3.HierarchyPointNode<unknown>, SVGGElement, unknown>) {
+        /**
+         * Enter new nodes
+         */
+         let nodesEnter = node
+         .append("g")
+         .attr("class", d => "node " + (d.children ? "node-internal" : "node-leaf"))
+         .attr("transform", d => "translate(" + d.y  + "," + d.x + ")")
+         .on("dblclick", click);
+
+        var nodeHeight = 21;
+        var nodeWidth = 67;
+        nodesEnter.append("rect")
+         .attr("width", nodeWidth)
+         .attr("height", nodeHeight)
+         .attr("rx", 10)
+         .attr("y", -nodeHeight/2)
+         .attr("x", -nodeWidth/2);
+ 
+        nodesEnter.append("text")
+            .attr("dy", ".35em")
+            .style("text-anchor", "middle")
+            .text((d : any) => d.data.name);
 
         // Toggle children on click.
         function click(d : any) {
@@ -188,57 +274,40 @@ export async function render(
             d.children = d._children;
             d._children = null;
             }
-            draw(d);
+            update(d);
         }
-
-        drawNodes(svgNodes);
-    }
-    
-     /**
-     * Draws the branches
-     * @param  - 
-     */
-      function drawBranches(svgBranches: d3.Selection<d3.EnterElement, d3.HierarchyPointLink<unknown>, SVGGElement, unknown>) {
-        /**
-         * Create the branches
-         */
-
-         var link = function link(d : any) {
-            return "M" + d.source.y + "," + d.source.x
-                + "C" + (d.source.y + d.target.y) / 2 + "," + d.source.x
-                + " " + (d.source.y + d.target.y) / 2 + "," + d.target.x
-                + " " + d.target.y + "," + d.target.x;
-          };
-
-        svgBranches
-         .append("path")
-         .attr("class", "branch")
-         .attr("d", link);
     }
 
     /**
-     * Draws the nodes
-     * @param svgNodes - 
+     * Removes the nodes
+     * @param node - 
      */
-    function drawNodes(svgNodes: d3.Selection<SVGGElement, d3.HierarchyPointNode<unknown>, SVGGElement, unknown>) {
-        /**
-         * Create the nodes
+     function exitNodes(node: d3.Selection<d3.BaseType, d3.HierarchyPointNode<unknown>, SVGGElement, unknown>) {
+    
+         /**
+         * Exiting nodes move to parents new position
          */
+          var nodesExit = node
+          .transition()
+          .duration(duration)
+          .attr("transform", function(d:any) { return "translate(" + d.parent.y + "," + d.parent.x + ")"; })
+          .remove();
+  
+          /**
+           * Exiting nodes shrinks
+           */
+          nodesExit.select("rect")
+          .attr("width", 1e-6)
+          .attr("height", 1e-6);
+  
+          /**
+           * Exiting nodes text fades
+           */
+          nodesExit.select("text")
+          .style("fill-opacity", 1e-6);
+  
 
-        var nodeHeight = 21;
-        var nodeWidth = 67;
-        svgNodes.append("rect")
-         .attr("width", nodeWidth)
-         .attr("height", nodeHeight)
-         .attr("rx", 10)
-         .attr("y", -nodeHeight/2)
-         .attr("x", -nodeWidth/2);
- 
-        svgNodes.append("text")
-            .attr("dy", ".35em")
-            .style("text-anchor", "middle")
-            .text((d : any) => d.data.name);
-    }
+     }
 
     /**
      * Draws rectangular selection
