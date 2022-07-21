@@ -13,6 +13,7 @@ export function overlap(firstArea: DOMRect, secondArea: DOMRect): boolean {
     );
 }
 
+<<<<<<< HEAD
 export function getAllNodes(node: d3.HierarchyPointNode<Node>): d3.HierarchyPointNode<Node>[] {
     let currentNode = node;
     let root = currentNode;
@@ -38,4 +39,14 @@ export function compareNodes(node1: d3.HierarchyPointNode<Node>, node2: d3.Hiera
     } else {
         return false;
     }
+=======
+export function getAllNodes(node : d3.HierarchyPointNode<unknown>) : d3.HierarchyPointNode<unknown>[] {
+    let currentNode = node;
+    let root = currentNode;
+    while(currentNode.parent !== null) {
+        root = currentNode.parent;
+        currentNode = root;
+    }
+    return root.descendants()   
+>>>>>>> aa13911 (Adding functions to add in markings)
 }

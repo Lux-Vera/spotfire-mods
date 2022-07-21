@@ -55,6 +55,7 @@ interface CustomLinkObject {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 var treeData = 
 {
     "value": "Eve",
@@ -80,10 +81,41 @@ var treeData =
                 "value": "Noam",
                 "width": 67,
                 "type" : NodeType.Leaf
+=======
+// marked : boolean -> To be replaced by spotfires internal API
+
+
+var treeData = 
+{
+    "name": "Eve",
+    "type": "black",
+    "marked" : false,
+    "children": [
+       {
+          "name": "Cain",
+          "type": "grey",
+          "marked" : true,
+       },
+       {
+          "name": "Seth",
+          "type": "grey",
+          "marked" : false,
+          "children": [
+             {
+                "name": "Enos",
+                "type": "grey",
+                "marked" : true,
+             },
+             {
+                "name": "Noam",
+                "type": "grey",
+                "marked" : false,
+>>>>>>> aa13911 (Adding functions to add in markings)
              }
           ]
        },
        {
+<<<<<<< HEAD
           "value": "Abel",
           "width": 67,
           "type" : NodeType.Leaf
@@ -97,10 +129,26 @@ var treeData =
                 "value": "Enoch",
                 "width": 67,
                 "type" : NodeType.Leaf
+=======
+          "name": "Abel",
+          "type": "grey",
+          "marked" : false,
+       },
+       {
+          "name": "Awan",
+          "type": "grey",
+          "marked" : false,
+          "children": [
+             {
+                "name": "Enoch",
+                "type": "grey",
+                "marked" : false,
+>>>>>>> aa13911 (Adding functions to add in markings)
              }
           ]
        },
        {
+<<<<<<< HEAD
           "value": "Azura",
           "width": 67,
           "type" : NodeType.Leaf
@@ -109,6 +157,20 @@ var treeData =
 };
 =======
 >>>>>>> 713a291 (New data)
+=======
+          "name": "Azura",
+          "type": "grey",
+          "children" : [
+            {
+                "name" : "Abel",
+                "type" : "grey",
+                "marked" : false
+            }
+          ]
+       }
+    ]
+ };
+>>>>>>> aa13911 (Adding functions to add in markings)
 /**
  * Renders the chart.
  * @param {RenderState} state
@@ -215,7 +277,12 @@ export async function render(
      * Draws a group.
      * @param source - source node that will be updated
      */
+<<<<<<< HEAD
     function update(source: any) {
+=======
+    function update(source: any) {    
+        console.log("INSIDE UPDATE");
+>>>>>>> aa13911 (Adding functions to add in markings)
         /**
          * Compute the new tree layout
          */
@@ -341,9 +408,11 @@ export async function render(
          */
          let nodeEnter = node
          .append("g")
-         .attr("class", (d : any) => "node " + d.data.type)
-         .attr("transform", d => "translate(" + (source.y0+source.data.width/2)  + "," + source.x0 + ")")
-         .on("dblclick", toggleCollapse);
+         .attr("class", d => "node " + (d.children ? "node-internal" : "node-leaf") + ` ${d.data.name}-${d.data.type}`)
+         .attr("transform", d => "translate(" + (d.parent ? d.parent.y : d.y)  + "," + (d.parent ? d.parent.x : d.x) + ")")
+         .on("click", singleClick)
+         .on("dblclick", click);
+         
 
         nodeEnter.append("rect")
          .attr("rx", 10)
@@ -357,6 +426,19 @@ export async function render(
         let f = styling.font;
 
         nodeEnter.append("text")
+         .style("fill", d => {
+            console.log(d)
+            if(d.data.marked) {
+                return "grey";
+            } else {
+                return "white";
+            }
+            
+         })
+         .attr("y", -nodeHeight/2)
+         .attr("x", -nodeWidth/2);
+ 
+        nodesEnter.append("text")
             .attr("dy", ".35em")
             .attr("class", (d) => `${d.data.name}-${d.data.type}-text` + " node-text")
             .style("text-anchor", "middle")
@@ -381,6 +463,20 @@ export async function render(
                 d._children = null;
             }
             update(d);
+        }
+
+        function singleClick(d : any) {
+            console.log("Inside singleClick")
+            let nodes = getAllNodes(d);
+            nodes.forEach((node : any) => {
+                if ((node.data.name == d.data.name) && (node.data.type == d.data.type)) {
+                    console.log(node);
+                    node.data.marked = !node.marked.data || false;
+                    update(node);
+                } 
+            })
+            //console.log(nodes[0].data.name)
+            //update(nodes[0]);
         }
     }
 
@@ -501,10 +597,20 @@ export async function render(
     }
 }
 
+<<<<<<< HEAD
 //function mark(node : any ) {
 //    //d3.event.ctrlKey ? d.mark("ToggleOrAdd") : d.mark();
 //    console.log("CLICK");
 //}
+=======
+function mark(node : any ) {
+    //d3.event.ctrlKey ? d.mark("ToggleOrAdd") : d.mark();
+    console.log("CLICK");
+}
+
+
+
+>>>>>>> aa13911 (Adding functions to add in markings)
 
 /**
  * Selects the elements that should be affected by the zoom
