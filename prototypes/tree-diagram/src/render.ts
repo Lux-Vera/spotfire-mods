@@ -1,6 +1,7 @@
 // @ts-ignore
 import * as d3 from "d3";
 import { FontInfo, Size, Tooltip } from "spotfire-api";
+import { getAllNodes } from "./helper";
 import { RenderState } from "./index";
 
 // type D3_SELECTION = d3.Selection<SVGGElement, unknown, HTMLElement, any>;
@@ -35,46 +36,64 @@ const defaultConfig: Options = {
 //     clearMarking(): void;
 // }
 
+// marked : boolean -> To be replaced by spotfires internal API
+
+
 var treeData = 
 {
     "name": "Eve",
     "type": "black",
+    "marked" : false,
     "children": [
        {
           "name": "Cain",
-          "type": "grey"
+          "type": "grey",
+          "marked" : true,
        },
        {
           "name": "Seth",
           "type": "grey",
+          "marked" : false,
           "children": [
              {
                 "name": "Enos",
-                "type": "grey"
+                "type": "grey",
+                "marked" : true,
              },
              {
                 "name": "Noam",
-                "type": "grey"
+                "type": "grey",
+                "marked" : false,
              }
           ]
        },
        {
           "name": "Abel",
-          "type": "grey"
+          "type": "grey",
+          "marked" : false,
        },
        {
           "name": "Awan",
           "type": "grey",
+          "marked" : false,
           "children": [
              {
                 "name": "Enoch",
-                "type": "grey"
+                "type": "grey",
+                "marked" : false,
              }
           ]
        },
        {
           "name": "Azura",
-          "type": "grey"
+          "type": "grey",
+          "children" : [
+            {
+                "name" : "Abel",
+                "type" : "grey",
+                "marked" : false
+            }
+          ]
        }
     ]
  };
@@ -170,7 +189,7 @@ export async function render(
      * @param nodes - Data nodes
      */
     function update(source: any) {    
-
+        console.log("INSIDE UPDATE");
         /**
          * Compute the new tree layout
          */
@@ -250,9 +269,11 @@ export async function render(
          */
          let nodesEnter = node
          .append("g")
-         .attr("class", d => "node " + (d.children ? "node-internal" : "node-leaf"))
+         .attr("class", d => "node " + (d.children ? "node-internal" : "node-leaf") + ` ${d.data.name}-${d.data.type}`)
          .attr("transform", d => "translate(" + (d.parent ? d.parent.y : d.y)  + "," + (d.parent ? d.parent.x : d.x) + ")")
+         .on("click", singleClick)
          .on("dblclick", click);
+         
 
         var nodeHeight = 21;
         var nodeWidth = 67;
@@ -260,6 +281,15 @@ export async function render(
          .attr("width", nodeWidth)
          .attr("height", nodeHeight)
          .attr("rx", 10)
+         .style("fill", d => {
+            console.log(d)
+            if(d.data.marked) {
+                return "grey";
+            } else {
+                return "white";
+            }
+            
+         })
          .attr("y", -nodeHeight/2)
          .attr("x", -nodeWidth/2);
  
@@ -278,6 +308,20 @@ export async function render(
             d._children = null;
             }
             update(d);
+        }
+
+        function singleClick(d : any) {
+            console.log("Inside singleClick")
+            let nodes = getAllNodes(d);
+            nodes.forEach((node : any) => {
+                if ((node.data.name == d.data.name) && (node.data.type == d.data.type)) {
+                    console.log(node);
+                    node.data.marked = !node.marked.data || false;
+                    update(node);
+                } 
+            })
+            //console.log(nodes[0].data.name)
+            //update(nodes[0]);
         }
     }
 
@@ -386,7 +430,11 @@ export async function render(
     }
 }
 
-// function mark(d: Node ) {
-//     d3.event.ctrlKey ? d.mark("ToggleOrAdd") : d.mark();
-// }
+function mark(node : any ) {
+    //d3.event.ctrlKey ? d.mark("ToggleOrAdd") : d.mark();
+    console.log("CLICK");
+}
+
+
+
 

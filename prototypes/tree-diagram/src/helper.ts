@@ -11,3 +11,13 @@ export function overlap(firstArea: DOMRect, secondArea: DOMRect): boolean {
         firstArea.top > secondArea.bottom
     );
 }
+
+export function getAllNodes(node : d3.HierarchyPointNode<unknown>) : d3.HierarchyPointNode<unknown>[] {
+    let currentNode = node;
+    let root = currentNode;
+    while(currentNode.parent !== null) {
+        root = currentNode.parent;
+        currentNode = root;
+    }
+    return root.descendants()   
+}
