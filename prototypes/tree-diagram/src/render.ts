@@ -152,6 +152,9 @@ export async function render(
     const width = Math.max(windowSize.width, cfg.minBoxSize);
     const height = Math.max(windowSize.height, cfg.minBoxSize);
     const padding = 70;
+    const duration = 750*2;
+    const nodeHeight = 21;
+    const nodeWidth = 67;
     var i = 0;
 
     /**
@@ -182,13 +185,11 @@ export async function render(
      */
     let tree = d3.tree().size([height - 2 * padding, width - 2 * padding]);
 
-    var diagonal = function link(d : CustomLinkObject) {
-        const s = d.source;
-        const t = d.target;
-        return "M" + (s.y+s.nodeWidth/2) + "," + s.x
-            + "C" + ((s.y+s.nodeWidth/2) + t.y) / 2 + "," + s.x
-            + " " + ((s.y+s.nodeWidth/2) + t.y) / 2 + "," + t.x
-            + " " + t.y + "," + t.x;
+    var diagonal = function link(d : any) {
+        return "M" + (d.source.y+nodeWidth/2) + "," + d.source.x
+            + "C" + ((d.source.y+nodeWidth/2) + d.target.y) / 2 + "," + d.source.x
+            + " " + ((d.source.y+nodeWidth/2) + d.target.y) / 2 + "," + d.target.x
+            + " " + d.target.y + "," + d.target.x;
       };
 
     let root : any = d3.hierarchy(nodesData);
@@ -230,8 +231,9 @@ export async function render(
             return d.target.id;
         });
 
-        drawLinks(link.enter(), source);
-        exitLinks(link.exit(), source);
+        drawLinks(link.enter());
+
+        exitLinks(link.exit());
 
         /**
          * Update nodes
@@ -272,36 +274,16 @@ export async function render(
         link
          .append("path")
          .attr("class", "link")
-          .attr("d", d => {
-          return diagonal({
-            source:{
-                x: source.x0,
-                y: source.y0,
-                nodeWidth: source.data.width}, 
-            target: {
-                x: source.x0,
-                y: source.y0+source.data.width/2,
-                nodeWidth: source.data.width}
-            });
-        });
+         .transition()
+          .duration(duration)
+          .attr("d", d => diagonal({source: d.source, target: d.source}));
 
          /**
          * Transition links to new position
          */ 
         svgChart.selectAll(".link").transition()
-        .duration(cfg.duration)
-        .attr("d", (d:any) => {
-            return diagonal({
-              source:{
-                  x: d.source.x,
-                  y: d.source.y,
-                  nodeWidth: d.source.data.width}, 
-              target: {
-                  x: d.target.x,
-                  y: d.target.y,
-                  nodeWidth: d.target.data.width}
-              });
-        });
+        .duration(duration)
+        .attr("d", diagonal);
     }
 
     /**
@@ -312,21 +294,8 @@ export async function render(
          // Transition exiting nodes to the parent's new position.
          link
          .transition()
-           .duration(cfg.duration)
-           .attr("d", (d:any) => {
-		    return diagonal({
-                source:{
-                    x: source.x,
-                    y: source.y,
-                    nodeWidth: source.data.width
-                },
-                target: {
-                    x: source.x,
-                    y: source.y+source.data.width/2,
-                    nodeWidth: source.data.width
-                }
-                });
-	        })
+           .duration(duration)
+           .attr("d", d => diagonal({source: d.source, target: {x: d.source.x, y: d.source.y+nodeWidth/2}}))
            .remove();
     }
 
@@ -347,7 +316,7 @@ export async function render(
          .on("dblclick", click);
          
 
-        nodeEnter.append("rect")
+        nodesEnter.append("rect")
          .attr("rx", 10)
          .transition()
           .duration(cfg.duration)
@@ -368,21 +337,20 @@ export async function render(
             
          })
          .attr("y", -nodeHeight/2)
-         .attr("x", -nodeWidth/2);
+         .attr("x", -nodeWidth/2)
+         .transition()
+          .duration(duration)
+          .attr("width", nodeWidth)
+          .attr("height", nodeHeight);
  
         nodesEnter.append("text")
             .attr("dy", ".35em")
             .attr("class", (d) => `${d.data.name}-${d.data.type}-text` + " node-text")
             .style("text-anchor", "middle")
-            .text((d : any) => d.data.value)
-            .attr("font-style", f.fontStyle)
-            .attr("font-weight", f.fontWeight)
-            .attr("font-size", f.fontSize)
-            .attr("font-family", f.fontFamily)
-            .attr("fill", f.color)
+            .text((d : any) => d.data.name)
             .style("fill-opacity", 1e-6)
             .transition()
-             .duration(cfg.duration)
+             .duration(duration)
              .style("fill-opacity", 1);
 
         // Toggle children on click.
@@ -424,8 +392,8 @@ export async function render(
          */
           var nodesExit = node
           .transition()
-          .duration(cfg.duration)
-          .attr("transform", function(d:any) { return "translate(" + (source.y+source.data.width/2) + "," + source.x + ")"; })
+          .duration(duration)
+          .attr("transform", function(d:any) { return "translate(" + (d.parent.y+nodeWidth) + "," + (d.parent.x) + ")"; })
           .remove();
   
           /**
