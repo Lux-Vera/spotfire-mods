@@ -123,7 +123,7 @@ export async function render(
     const width = Math.max(windowSize.width, cfg.minBoxSize);
     const height = Math.max(windowSize.height, cfg.minBoxSize);
     const padding = 70;
-    const duration = 750*2;
+    const duration = 750;
     const nodeHeight = 21;
     const nodeWidth = 67;
     var i = 0;
@@ -219,8 +219,6 @@ export async function render(
         link
          .append("path")
          .attr("class", "link")
-         .transition()
-          .duration(duration)
           .attr("d", d => diagonal({source: d.source, target: d.source}));
 
          /**
