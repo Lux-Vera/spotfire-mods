@@ -37,7 +37,6 @@ body {
 }
 
 .node text {
-    font: 12px sans-serif;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
