@@ -142,7 +142,9 @@ export async function render(
     const width = Math.max(windowSize.width, cfg.minBoxSize);
     const height = Math.max(windowSize.height, cfg.minBoxSize);
     const padding = 70;
-    const duration = 750;
+    const duration = 750*2;
+    const nodeHeight = 21;
+    const nodeWidth = 67;
     var i = 0;
 
     /**
@@ -163,9 +165,9 @@ export async function render(
     let tree = d3.tree().size([height-(2*padding), width-(2*padding)]);
 
     var diagonal = function link(d : any) {
-        return "M" + d.source.y + "," + d.source.x
-            + "C" + (d.source.y + d.target.y) / 2 + "," + d.source.x
-            + " " + (d.source.y + d.target.y) / 2 + "," + d.target.x
+        return "M" + (d.source.y+nodeWidth/2) + "," + d.source.x
+            + "C" + ((d.source.y+nodeWidth/2) + d.target.y) / 2 + "," + d.source.x
+            + " " + ((d.source.y+nodeWidth/2) + d.target.y) / 2 + "," + d.target.x
             + " " + d.target.y + "," + d.target.x;
       };
 
@@ -203,13 +205,6 @@ export async function render(
 
         drawLinks(link.enter());
 
-        /**
-         * Transition links to new position
-         */ 
-        svgChart.selectAll(".link").transition()
-        .duration(duration)
-        .attr("d", diagonal);
-
         exitLinks(link.exit());
 
         /**
@@ -242,7 +237,16 @@ export async function render(
         link
          .append("path")
          .attr("class", "link")
-         .attr("d", d => diagonal({source: d.source, target: d.source}));
+         .transition()
+          .duration(duration)
+          .attr("d", d => diagonal({source: d.source, target: d.source}));
+
+         /**
+         * Transition links to new position
+         */ 
+        svgChart.selectAll(".link").transition()
+        .duration(duration)
+        .attr("d", diagonal);
     }
 
     /**
@@ -254,7 +258,7 @@ export async function render(
          link
          .transition()
            .duration(duration)
-           .attr("d", d => diagonal({source: d.source, target: d.source}))
+           .attr("d", d => diagonal({source: d.source, target: {x: d.source.x, y: d.source.y+nodeWidth/2}}))
            .remove();
     }
 
@@ -274,11 +278,7 @@ export async function render(
          .on("dblclick", click);
          
 
-        var nodeHeight = 21;
-        var nodeWidth = 67;
         nodesEnter.append("rect")
-         .attr("width", nodeWidth)
-         .attr("height", nodeHeight)
          .attr("rx", 10)
          .style("fill", d => {
             if(d.data.marked) {
@@ -289,12 +289,20 @@ export async function render(
             
          })
          .attr("y", -nodeHeight/2)
-         .attr("x", -nodeWidth/2);
+         .attr("x", -nodeWidth/2)
+         .transition()
+          .duration(duration)
+          .attr("width", nodeWidth)
+          .attr("height", nodeHeight);
  
         nodesEnter.append("text")
             .attr("dy", ".35em")
             .style("text-anchor", "middle")
-            .text((d : any) => d.data.name);
+            .text((d : any) => d.data.name)
+            .style("fill-opacity", 1e-6)
+            .transition()
+             .duration(duration)
+             .style("fill-opacity", 1);
 
         // Toggle children on click.
         function click(d : any) {
@@ -336,7 +344,7 @@ export async function render(
           var nodesExit = node
           .transition()
           .duration(duration)
-          .attr("transform", function(d:any) { return "translate(" + d.parent.y + "," + d.parent.x + ")"; })
+          .attr("transform", function(d:any) { return "translate(" + (d.parent.y+nodeWidth) + "," + (d.parent.x) + ")"; })
           .remove();
   
           /**
@@ -350,7 +358,8 @@ export async function render(
            * Exiting nodes text fades
            */
           nodesExit.select("text")
-          .style("fill-opacity", 1e-6);
+          .style("fill-opacity", 1e-6)
+          .style("font-size", 1e-6);
   
 
      }
