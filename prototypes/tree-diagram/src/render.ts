@@ -154,7 +154,7 @@ export async function render(
 
     let root : any = d3.hierarchy(data, (d: any) => d.children);
 
-    root.x0 = height / 2;
+    root.x0 = (height-(2*padding)) / 2;
     root.y0 = 0;
 
     /**
@@ -178,6 +178,7 @@ export async function render(
          */
         var treeLayout = tree(root);
         var links = treeLayout.links();
+        var nodes = treeLayout.descendants();
 
         /**
          * Update links
@@ -185,17 +186,16 @@ export async function render(
         const link = svgChart.selectAll(".link")
         .data(links, function(d:any) { return d.target.id; });
 
-        drawLinks(link.enter());
-
-        exitLinks(link.exit());
+        drawLinks(link.enter(), source);
+        exitLinks(link.exit(), source);
 
         /**
          * Update nodes
          */
         var node = svgChart.selectAll(".node")
-        .data(treeLayout.descendants(), function(d:any) { return d.id || (d.id = ++i); });
+        .data(nodes, function(d:any) { return d.id || (d.id = ++i); });
 
-        drawNodes(node.enter());
+        drawNodes(node.enter(), source);
 
         /**
          * Transition nodes to new position
@@ -205,21 +205,32 @@ export async function render(
             .duration(duration)
             .attr("transform", function(d:any) { return "translate(" + d.y + "," + d.x + ")"; });
 
-        exitNodes(node.exit());
+        exitNodes(node.exit(), source);
+
+        /**
+         * Stash the old positions for transition.
+         */
+        nodes.forEach(function(d:any) {
+            d.x0 = d.x;
+            d.y0 = d.y;
+        });
     }
     
      /**
       * Draws the links
       * @param  - 
       */
-      function drawLinks(link: d3.Selection<d3.EnterElement, d3.HierarchyPointLink<unknown>, SVGGElement, unknown>) {
+      function drawLinks(link: d3.Selection<d3.EnterElement, d3.HierarchyPointLink<unknown>, SVGGElement, unknown>, source : any) {
         /**
          * Create the branches
          */
         link
          .append("path")
          .attr("class", "link")
-          .attr("d", d => diagonal({source: d.source, target: d.source}));
+          .attr("d", d => {
+          var o = {x: source.x0, y: source.y0};
+          return diagonal({source: o, target: o});
+        });
 
          /**
          * Transition links to new position
@@ -233,12 +244,17 @@ export async function render(
       * Removes the branches
       * @param  - 
       */
-    function exitLinks(link: d3.Selection<d3.BaseType, d3.HierarchyPointLink<unknown>, SVGGElement, unknown>) {
+    function exitLinks(link: d3.Selection<d3.BaseType, d3.HierarchyPointLink<unknown>, SVGGElement, unknown>, source : any) {
          // Transition exiting nodes to the parent's new position.
          link
          .transition()
            .duration(duration)
-           .attr("d", d => diagonal({source: d.source, target: {x: d.source.x, y: d.source.y+nodeWidth/2}}))
+           .attr("d", (d) => {
+		    return diagonal({
+                source: source, 
+                target: {x: source.x, y: source.y+nodeWidth/2}
+                });
+	        })
            .remove();
     }
 
@@ -246,22 +262,22 @@ export async function render(
      * Draws the nodes
      * @param node - 
      */
-    function drawNodes(node: d3.Selection<any, d3.HierarchyPointNode<unknown>, SVGGElement, unknown>) {
+    function drawNodes(node: d3.Selection<any, d3.HierarchyPointNode<unknown>, SVGGElement, unknown>, source : any) {
         /**
          * Enter new nodes
          */
          let nodesEnter = node
          .append("g")
          .attr("class", d => "node " + (d.children ? "node-internal" : "node-leaf"))
-         .attr("transform", d => "translate(" + (d.parent ? d.parent.y : d.y)  + "," + (d.parent ? d.parent.x : d.x) + ")")
+         .attr("transform", d => "translate(" + (source.y0+nodeWidth/2)  + "," + source.x0 + ")")
          .on("dblclick", click);
 
         nodesEnter.append("rect")
          .attr("rx", 10)
-         .attr("y", -nodeHeight/2)
-         .attr("x", -nodeWidth/2)
          .transition()
           .duration(duration)
+          .attr("y", -nodeHeight/2)
+          .attr("x", -nodeWidth/2)
           .attr("width", nodeWidth)
           .attr("height", nodeHeight);
  
@@ -291,7 +307,7 @@ export async function render(
      * Removes the nodes
      * @param node - 
      */
-     function exitNodes(node: d3.Selection<d3.BaseType, d3.HierarchyPointNode<unknown>, SVGGElement, unknown>) {
+     function exitNodes(node: d3.Selection<d3.BaseType, d3.HierarchyPointNode<unknown>, SVGGElement, unknown>, source : any) {
     
          /**
          * Exiting nodes move to parents new position
@@ -299,13 +315,15 @@ export async function render(
           var nodesExit = node
           .transition()
           .duration(duration)
-          .attr("transform", function(d:any) { return "translate(" + (d.parent.y+nodeWidth) + "," + (d.parent.x) + ")"; })
+          .attr("transform", function(d:any) { return "translate(" + (source.y+nodeWidth/2) + "," + source.x + ")"; })
           .remove();
   
           /**
            * Exiting nodes shrinks
            */
           nodesExit.select("rect")
+          .attr("y", 1e-6)
+          .attr("x", 1e-6)
           .attr("width", 1e-6)
           .attr("height", 1e-6);
   
