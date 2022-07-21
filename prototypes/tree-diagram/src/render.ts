@@ -166,7 +166,7 @@ export async function render(
     const width = Math.max(windowSize.width, cfg.minBoxSize);
     const height = Math.max(windowSize.height, cfg.minBoxSize);
     const padding = 70;
-    const duration = 750;
+    const duration = 750*2;
     const nodeHeight = 21;
     const nodeWidth = 67;
     var i = 0;
@@ -199,26 +199,12 @@ export async function render(
      */
     let tree = d3.tree().size([height - 2 * padding, width - 2 * padding]);
 
-    var diagonal = function link(d: any) {
-        return (
-            "M" +
-            (d.source.y + nodeWidth / 2) +
-            "," +
-            d.source.x +
-            "C" +
-            (d.source.y + nodeWidth / 2 + d.target.y) / 2 +
-            "," +
-            d.source.x +
-            " " +
-            (d.source.y + nodeWidth / 2 + d.target.y) / 2 +
-            "," +
-            d.target.x +
-            " " +
-            d.target.y +
-            "," +
-            d.target.x
-        );
-    };
+    var diagonal = function link(d : any) {
+        return "M" + (d.source.y+nodeWidth/2) + "," + d.source.x
+            + "C" + ((d.source.y+nodeWidth/2) + d.target.y) / 2 + "," + d.source.x
+            + " " + ((d.source.y+nodeWidth/2) + d.target.y) / 2 + "," + d.target.x
+            + " " + d.target.y + "," + d.target.x;
+      };
 
     let root: any = d3.hierarchy(data, (d: any) => d.children);
 
@@ -293,14 +279,19 @@ export async function render(
         /**
          * Create the branches
          */
-        link.append("path")
-            .attr("class", "link")
-            .attr("d", (d) => diagonal({ source: d.source, target: d.source }));
+        link
+         .append("path")
+         .attr("class", "link")
+         .transition()
+          .duration(duration)
+          .attr("d", d => diagonal({source: d.source, target: d.source}));
 
-        /**
+         /**
          * Transition links to new position
-         */
-        svgChart.selectAll(".link").transition().duration(duration).attr("d", diagonal);
+         */ 
+        svgChart.selectAll(".link").transition()
+        .duration(duration)
+        .attr("d", diagonal);
     }
 
     /**
@@ -308,11 +299,12 @@ export async function render(
      * @param  -
      */
     function exitLinks(link: d3.Selection<d3.BaseType, d3.HierarchyPointLink<unknown>, SVGGElement, unknown>) {
-        // Transition exiting nodes to the parent's new position.
-        link.transition()
-            .duration(duration)
-            .attr("d", (d) => diagonal({ source: d.source, target: { x: d.source.x, y: d.source.y + nodeWidth / 2 } }))
-            .remove();
+         // Transition exiting nodes to the parent's new position.
+         link
+         .transition()
+           .duration(duration)
+           .attr("d", d => diagonal({source: d.source, target: {x: d.source.x, y: d.source.y+nodeWidth/2}}))
+           .remove();
     }
 
     /**
@@ -333,34 +325,24 @@ export async function render(
             .on("dblclick", click)
             .on("click", (d) => singleClick(d, update, tooltip));
 
-        nodesEnter
-            .append("rect")
-            .attr("class", (d) => `${d.data.name}-${d.data.type}` + " node-rectangle")
-            .attr("rx", 10)
-            .style("fill", (d) => {
-                if (d.data.marked) {
-                    return "grey";
-                } else {
-                    return "white";
-                }
-            })
-            .attr("y", -nodeHeight / 2)
-            .attr("x", -nodeWidth / 2)
-            .transition()
-            .duration(duration)
-            .attr("width", nodeWidth)
-            .attr("height", nodeHeight);
-
-        nodesEnter
-            .append("text")
+        nodesEnter.append("rect")
+         .attr("rx", 10)
+         .attr("y", -nodeHeight/2)
+         .attr("x", -nodeWidth/2)
+         .transition()
+          .duration(duration)
+          .attr("width", nodeWidth)
+          .attr("height", nodeHeight);
+ 
+        nodesEnter.append("text")
             .attr("dy", ".35em")
             .attr("class", (d) => `${d.data.name}-${d.data.type}-text` + " node-text")
             .style("text-anchor", "middle")
-            .text((d: HierarchyPointNode<Node>) => d.data.name)
+            .text((d : any) => d.data.name)
             .style("fill-opacity", 1e-6)
             .transition()
-            .duration(duration)
-            .style("fill-opacity", 1);
+             .duration(duration)
+             .style("fill-opacity", 1);
 
         // Toggle children on click.
         function click(d: any) {
@@ -383,13 +365,26 @@ export async function render(
         /**
          * Exiting nodes move to parents new position
          */
-        var nodesExit = node
-            .transition()
-            .duration(duration)
-            .attr("transform", function (d: any) {
-                return "translate(" + (d.parent.y + nodeWidth) + "," + d.parent.x + ")";
-            })
-            .remove();
+          var nodesExit = node
+          .transition()
+          .duration(duration)
+          .attr("transform", function(d:any) { return "translate(" + (d.parent.y+nodeWidth) + "," + (d.parent.x) + ")"; })
+          .remove();
+  
+          /**
+           * Exiting nodes shrinks
+           */
+          nodesExit.select("rect")
+          .attr("width", 1e-6)
+          .attr("height", 1e-6);
+  
+          /**
+           * Exiting nodes text fades
+           */
+          nodesExit.select("text")
+          .style("fill-opacity", 1e-6)
+          .style("font-size", 1e-6);
+  
 
         /**
          * Exiting nodes shrinks
