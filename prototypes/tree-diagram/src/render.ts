@@ -2,6 +2,7 @@
 import * as d3 from "d3";
 import { FontInfo, Size, Tooltip } from "spotfire-api";
 import { RenderState } from "./index";
+import { Node } from "./series";
 
 // type D3_SELECTION = d3.Selection<SVGGElement, unknown, HTMLElement, any>;
 // type D3_HIERARCHY_SELECTION = d3.Selection<SVGGElement | d3.EnterElement, d3.HierarchyPointNode<unknown> | d3.HierarchyPointLink<unknown>, SVGGElement, unknown>;
@@ -11,29 +12,32 @@ import { RenderState } from "./index";
 const svg = d3.select("#mod-container").append("svg").attr("xmlns", "http://www.w3.org/2000/svg");
 
 export interface Options {
-    /** The opacity of the branch lines */
-    opacityLines: number;
+    /** The height of the nodes */
+    nodeHeight: number;
     /** The width of the stroke around each blob */
     strokeWidth: number;
     /** The distance between the axis labels and the axis */
     labelOffset: number;
     /** Minimum size of a box. Defaults to 300 */
     minBoxSize: number;
+    /** Duration of transitions in ms */
+    duration: number;
     onLabelClick: null | ((x: number, y: number) => void);
 }
 
 const defaultConfig: Options = {
-    opacityLines: 0.3,
-    strokeWidth: 2,
+    nodeHeight: 21,
+    strokeWidth: 1,
     labelOffset: 20,
     minBoxSize: 50,
+    duration: 750,
     onLabelClick: null
 };
 
-// export interface Data {
-//     nodes: Nodes[];
-//     clearMarking(): void;
-// }
+export interface Data {
+    clearMarking(): void;
+    nodes: Node[]
+}
 
 var treeData = 
 {
@@ -89,12 +93,10 @@ var treeData =
  */
 export async function render(
     state: RenderState,
-    //data: Data,
+    data2: Data,
     windowSize: Size,
-    config: Partial<Options>,
     styling: {
-        scales: FontInfo;
-        stroke: string;
+        font: FontInfo;
     },
     tooltip: Tooltip,
 ) {
@@ -112,10 +114,9 @@ export async function render(
      */
     const cfg: Options = {
         ...defaultConfig,
-        ...config
     };
 
-    let data = treeData;
+    let data = data2.nodes[0];
 
     /**
      * Calculating the position and size of the chart
@@ -123,8 +124,6 @@ export async function render(
     const width = Math.max(windowSize.width, cfg.minBoxSize);
     const height = Math.max(windowSize.height, cfg.minBoxSize);
     const padding = 70;
-    const duration = 750;
-    const nodeHeight = 21;
     const nodeWidth = 67;
     var i = 0;
 
@@ -169,7 +168,7 @@ export async function render(
 
     /**
      * Draws a group.
-     * @param nodes - Data nodes
+     * @param source - source node that will be updated
      */
     function update(source: any) {    
 
@@ -195,14 +194,14 @@ export async function render(
         var node = svgChart.selectAll(".node")
         .data(nodes, function(d:any) { return d.id || (d.id = ++i); });
 
-        drawNodes(node.enter(), source);
+        drawNode(node.enter(), source);
 
         /**
          * Transition nodes to new position
          */ 
         svgChart.selectAll(".node")
             .transition()
-            .duration(duration)
+            .duration(cfg.duration)
             .attr("transform", function(d:any) { return "translate(" + d.y + "," + d.x + ")"; });
 
         exitNodes(node.exit(), source);
@@ -230,7 +229,7 @@ export async function render(
           .attr("d", d => {
           return diagonal({
             source:{x: source.x0, y: source.y0}, 
-            target: {x: source.x0, y: source.y0+nodeWidth/2}
+            target: {x: source.x0, y: source.y0+source.data.width/2}
             });
         });
 
@@ -238,7 +237,7 @@ export async function render(
          * Transition links to new position
          */ 
         svgChart.selectAll(".link").transition()
-        .duration(duration)
+        .duration(cfg.duration)
         .attr("d", diagonal);
     }
 
@@ -250,11 +249,11 @@ export async function render(
          // Transition exiting nodes to the parent's new position.
          link
          .transition()
-           .duration(duration)
-           .attr("d", (d) => {
+           .duration(cfg.duration)
+           .attr("d", (d:any) => {
 		    return diagonal({
                 source: source, 
-                target: {x: source.x, y: source.y+nodeWidth/2}
+                target: {x: source.x, y: source.y+d.data.width/2}
                 });
 	        })
            .remove();
@@ -264,32 +263,35 @@ export async function render(
      * Draws the nodes
      * @param node - 
      */
-    function drawNodes(node: d3.Selection<any, d3.HierarchyPointNode<unknown>, SVGGElement, unknown>, source : any) {
+    function drawNode(node: d3.Selection<any, d3.HierarchyPointNode<unknown>, SVGGElement, unknown>, source : any) {
+
         /**
          * Enter new nodes
          */
-         let nodesEnter = node
+         let nodeEnter = node
          .append("g")
          .attr("class", d => "node " + (d.children ? "node-internal" : "node-leaf"))
-         .attr("transform", d => "translate(" + (source.y0+nodeWidth/2)  + "," + source.x0 + ")")
+         .attr("transform", (d:any) => "translate(" + (source.y0+d.data.width/2)  + "," + source.x0 + ")")
          .on("dblclick", click);
 
-        nodesEnter.append("rect")
+        nodeEnter.append("rect")
          .attr("rx", 10)
          .transition()
-          .duration(duration)
-          .attr("y", -nodeHeight/2)
-          .attr("x", -nodeWidth/2)
-          .attr("width", nodeWidth)
-          .attr("height", nodeHeight);
- 
-        nodesEnter.append("text")
+          .duration(cfg.duration)
+          .attr("y", -cfg.nodeHeight/2)
+          .attr("x", (d:any) => -d.data.width/2)
+          .attr("width", (d:any) => d.data.width )
+          .attr("height", cfg.nodeHeight);
+   
+        nodeEnter.append("text")
             .attr("dy", ".35em")
             .style("text-anchor", "middle")
-            .text((d : any) => d.data.name)
+            .text((d : any) => d.data.value)
+            .attr("font-family", styling.font.fontFamily)
+            .attr("font-size", styling.font.fontSize)
             .style("fill-opacity", 1e-6)
             .transition()
-             .duration(duration)
+             .duration(cfg.duration)
              .style("fill-opacity", 1);
 
         // Toggle children on click.
@@ -316,7 +318,7 @@ export async function render(
          */
           var nodesExit = node
           .transition()
-          .duration(duration)
+          .duration(cfg.duration)
           .attr("transform", function(d:any) { return "translate(" + (source.y+nodeWidth/2) + "," + source.x + ")"; })
           .remove();
   

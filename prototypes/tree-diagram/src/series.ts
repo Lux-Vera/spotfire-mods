@@ -1,24 +1,29 @@
-import {MarkingOperation } from "spotfire-api";
+import {Column, DataViewHierarchyNode, MarkingOperation } from "spotfire-api";
 
 export interface Node {
-    id: string;
+    // id: string;
     value?: string;
-    mark(mode?: MarkingOperation): void;
+    width?: number;
+    // mark(mode?: MarkingOperation): void;
     children?: Node[];
 }
 
 export function buildNodeSeries(
-    id: string,
-    name: string,
-    // nodes: DataViewHierarchyNode[],
+    nodes: Column[],
+    fontSize: number,
 ) {
 
-    // let nodeSeries: Node[] = nodes.map((node) => ({
-    //     id: node.key!,
-    //     value: node.formattedPath(),
-    //     connections: [],
-    //     mark: (m) => node.mark(m)
-    // }));
+    //TODO
 
-    // return nodeSeries;
+    let childNodes : Node[] = nodes.map((node) => ({
+        // id: node.,
+        value: node.name,
+        width: node.name.length*fontSize*0.7
+        //mark: (m) => node.mark(m)
+    }));
+
+    //Fake build
+    let nodeSeries : Node[] = [{ value: "SuperStore", width: "SuperStore".length*fontSize, children: childNodes}]
+
+    return nodeSeries;
 }
