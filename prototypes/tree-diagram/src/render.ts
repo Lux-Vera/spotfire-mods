@@ -277,12 +277,7 @@ export async function render(
      * Draws a group.
      * @param source - source node that will be updated
      */
-<<<<<<< HEAD
     function update(source: any) {
-=======
-    function update(source: any) {    
-        console.log("INSIDE UPDATE");
->>>>>>> aa13911 (Adding functions to add in markings)
         /**
          * Compute the new tree layout
          */
