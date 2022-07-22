@@ -54,8 +54,6 @@ interface CustomLinkObject {
     }
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 var treeData = 
 {
     "value": "Eve",
@@ -81,41 +79,11 @@ var treeData =
                 "value": "Noam",
                 "width": 67,
                 "type" : NodeType.Leaf
-=======
-// marked : boolean -> To be replaced by spotfires internal API
 
-
-var treeData = 
-{
-    "name": "Eve",
-    "type": "black",
-    "marked" : false,
-    "children": [
-       {
-          "name": "Cain",
-          "type": "grey",
-          "marked" : true,
-       },
-       {
-          "name": "Seth",
-          "type": "grey",
-          "marked" : false,
-          "children": [
-             {
-                "name": "Enos",
-                "type": "grey",
-                "marked" : true,
-             },
-             {
-                "name": "Noam",
-                "type": "grey",
-                "marked" : false,
->>>>>>> aa13911 (Adding functions to add in markings)
              }
           ]
        },
        {
-<<<<<<< HEAD
           "value": "Abel",
           "width": 67,
           "type" : NodeType.Leaf
@@ -129,48 +97,18 @@ var treeData =
                 "value": "Enoch",
                 "width": 67,
                 "type" : NodeType.Leaf
-=======
-          "name": "Abel",
-          "type": "grey",
-          "marked" : false,
-       },
-       {
-          "name": "Awan",
-          "type": "grey",
-          "marked" : false,
-          "children": [
-             {
-                "name": "Enoch",
-                "type": "grey",
-                "marked" : false,
->>>>>>> aa13911 (Adding functions to add in markings)
+
              }
           ]
        },
        {
-<<<<<<< HEAD
           "value": "Azura",
           "width": 67,
           "type" : NodeType.Leaf
        }
     ]
 };
-=======
->>>>>>> 713a291 (New data)
-=======
-          "name": "Azura",
-          "type": "grey",
-          "children" : [
-            {
-                "name" : "Abel",
-                "type" : "grey",
-                "marked" : false
-            }
-          ]
-       }
-    ]
- };
->>>>>>> aa13911 (Adding functions to add in markings)
+
 /**
  * Renders the chart.
  * @param {RenderState} state
@@ -592,20 +530,10 @@ export async function render(
     }
 }
 
-<<<<<<< HEAD
 //function mark(node : any ) {
 //    //d3.event.ctrlKey ? d.mark("ToggleOrAdd") : d.mark();
 //    console.log("CLICK");
 //}
-=======
-function mark(node : any ) {
-    //d3.event.ctrlKey ? d.mark("ToggleOrAdd") : d.mark();
-    console.log("CLICK");
-}
-
-
-
->>>>>>> aa13911 (Adding functions to add in markings)
 
 /**
  * Selects the elements that should be affected by the zoom
