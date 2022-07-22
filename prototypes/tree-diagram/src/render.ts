@@ -185,16 +185,30 @@ export async function render(
      */
     let tree = d3.tree().size([height - 2 * padding, width - 2 * padding]);
 
-    var diagonal = function link(d : any) {
-        return "M" + (d.source.y+nodeWidth/2) + "," + d.source.x
-            + "C" + ((d.source.y+nodeWidth/2) + d.target.y) / 2 + "," + d.source.x
-            + " " + ((d.source.y+nodeWidth/2) + d.target.y) / 2 + "," + d.target.x
-            + " " + d.target.y + "," + d.target.x;
-      };
+    var diagonal = function link(d: any) {
+        return (
+            "M" +
+            (d.source.y + nodeWidth / 2) +
+            "," +
+            d.source.x +
+            "C" +
+            (d.source.y + nodeWidth / 2 + d.target.y) / 2 +
+            "," +
+            d.source.x +
+            " " +
+            (d.source.y + nodeWidth / 2 + d.target.y) / 2 +
+            "," +
+            d.target.x +
+            " " +
+            d.target.y +
+            "," +
+            d.target.x
+        );
+    };
 
-    let root : any = d3.hierarchy(nodesData);
-    
-    root.x0 = (height-(2*padding)) / 2;
+    let root: any = d3.hierarchy(data, (d: any) => d.children);
+
+    root.x0 = height / 2;
     root.y0 = 0;
 
     /**
@@ -238,8 +252,9 @@ export async function render(
         /**
          * Update nodes
          */
-        var node = svgChart.selectAll(".node")
-        .data(nodes, function(d:any) { return d.id || (d.id = ++i); });
+        var node = svgChart.selectAll(".node").data(treeLayout.descendants(), function (d: any) {
+            return d.id || (d.id = ++i);
+        });
 
         drawNode(node.enter(), source);
 
@@ -249,8 +264,10 @@ export async function render(
         svgChart
             .selectAll(".node")
             .transition()
-            .duration(cfg.duration)
-            .attr("transform", function(d:any) { return "translate(" + d.y + "," + d.x + ")"; });
+            .duration(duration)
+            .attr("transform", function (d: any) {
+                return "translate(" + d.y + "," + d.x + ")";
+            });
 
         exitNodes(node.exit(), source);
 
@@ -262,41 +279,35 @@ export async function render(
             d.y0 = d.y;
         });
     }
-    
-     /**
-      * Draws the links
-      * @param  - 
-      */
-      function drawLinks(link: d3.Selection<d3.EnterElement, d3.HierarchyPointLink<unknown>, SVGGElement, unknown>, source : any) {
+
+    /**
+     * Draws the links
+     * @param  -
+     */
+    function drawLinks(link: d3.Selection<d3.EnterElement, d3.HierarchyPointLink<unknown>, SVGGElement, unknown>) {
         /**
          * Create the branches
          */
-        link
-         .append("path")
-         .attr("class", "link")
-         .transition()
-          .duration(duration)
-          .attr("d", d => diagonal({source: d.source, target: d.source}));
+        link.append("path")
+            .attr("class", "link")
+            .attr("d", (d) => diagonal({ source: d.source, target: d.source }));
 
-         /**
+        /**
          * Transition links to new position
-         */ 
-        svgChart.selectAll(".link").transition()
-        .duration(duration)
-        .attr("d", diagonal);
+         */
+        svgChart.selectAll(".link").transition().duration(duration).attr("d", diagonal);
     }
 
     /**
-      * Removes the branches
-      * @param  - 
-      */
-    function exitLinks(link: d3.Selection<d3.BaseType, d3.HierarchyPointLink<unknown>, SVGGElement, unknown>, source : any) {
-         // Transition exiting nodes to the parent's new position.
-         link
-         .transition()
-           .duration(duration)
-           .attr("d", d => diagonal({source: d.source, target: {x: d.source.x, y: d.source.y+nodeWidth/2}}))
-           .remove();
+     * Removes the branches
+     * @param  -
+     */
+    function exitLinks(link: d3.Selection<d3.BaseType, d3.HierarchyPointLink<unknown>, SVGGElement, unknown>) {
+        // Transition exiting nodes to the parent's new position.
+        link.transition()
+            .duration(duration)
+            .attr("d", (d) => diagonal({ source: d.source, target: { x: d.source.x, y: d.source.y + nodeWidth / 2 } }))
+            .remove();
     }
 
     /**
@@ -308,53 +319,46 @@ export async function render(
          * Enter new nodes
          */
         let nodesEnter = node
-         .append("g")
-         .attr("class", d => "node " + (d.children ? "node-internal" : "node-leaf"))
-         .attr("transform", d => "translate(" + (d.parent ? d.parent.y : d.y)  + "," + (d.parent ? d.parent.x : d.x) + ")")
-         .on("dblclick", click)
-         .on("click", singleClick);
-         
+            .append("g")
+            .attr("class", (d) => "node " + (d.children ? "node-internal" : "node-leaf"))
+            .attr(
+                "transform",
+                (d) => "translate(" + (d.parent ? d.parent.y : d.y) + "," + (d.parent ? d.parent.x : d.x) + ")"
+            )
+            .on("dblclick", click)
+            .on("click", singleClick);
 
-        nodesEnter.append("rect")
-         .attr("class", d => `${d.data.name}-${d.data.type}`)
-         .attr("rx", 10)
-         .transition()
-          .duration(cfg.duration)
-          .attr("y", -cfg.nodeHeight/2)
-          .attr("x", (d:any) => -d.data.width/2)
-          .attr("width", (d:any) => d.data.width )
-          .attr("height", cfg.nodeHeight);
-   
-        let f = styling.font;
+        nodesEnter
+            .append("rect")
+            .attr("class", (d) => `${d.data.name}-${d.data.type}`)
+            .attr("rx", 10)
+            .style("fill", (d) => {
+                if (d.data.marked) {
+                    return "grey";
+                } else {
+                    return "white";
+                }
+            })
+            .attr("y", -nodeHeight / 2)
+            .attr("x", -nodeWidth / 2)
+            .transition()
+            .duration(duration)
+            .attr("width", nodeWidth)
+            .attr("height", nodeHeight);
 
-        nodeEnter.append("text")
-         .style("fill", d => {
-            if(d.data.marked) {
-                return "grey";
-            } else {
-                return "white";
-            }
-            
-         })
-         .attr("y", -nodeHeight/2)
-         .attr("x", -nodeWidth/2)
-         .transition()
-          .duration(duration)
-          .attr("width", nodeWidth)
-          .attr("height", nodeHeight);
- 
-        nodesEnter.append("text")
+        nodesEnter
+            .append("text")
             .attr("dy", ".35em")
             .attr("class", (d) => `${d.data.name}-${d.data.type}-text` + " node-text")
             .style("text-anchor", "middle")
             .text((d : any) => d.data.name)
             .style("fill-opacity", 1e-6)
             .transition()
-             .duration(duration)
-             .style("fill-opacity", 1);
+            .duration(duration)
+            .style("fill-opacity", 1);
 
         // Toggle children on click.
-        function toggleCollapse(d : any) {
+        function click(d: any) {
             if (d.children) {
                 d._children = d.children;
                 d.children = null;
@@ -365,7 +369,7 @@ export async function render(
             update(d);
         }
 
-        function singleClick(d : d3.HierarchyPointNode<Node>) {
+        function singleClick(d: d3.HierarchyPointNode<Node>) {
             d.data.marked = !d.data.marked || false;
             // The colors should be generated earilier from the API
             d3.selectAll(`.${d.data.name}-${d.data.type}`).style("fill", d.data.marked ? "grey" : "white");
@@ -378,33 +382,17 @@ export async function render(
      * Removes the nodes
      * @param node -
      */
-     function exitNodes(node: d3.Selection<d3.BaseType, d3.HierarchyPointNode<unknown>, SVGGElement, unknown>, source : any) {
-    
-         /**
+    function exitNodes(node: d3.Selection<d3.BaseType, d3.HierarchyPointNode<unknown>, SVGGElement, unknown>) {
+        /**
          * Exiting nodes move to parents new position
          */
-          var nodesExit = node
-          .transition()
-          .duration(duration)
-          .attr("transform", function(d:any) { return "translate(" + (d.parent.y+nodeWidth) + "," + (d.parent.x) + ")"; })
-          .remove();
-  
-          /**
-           * Exiting nodes shrinks
-           */
-          nodesExit.select("rect")
-          .attr("y", 1e-6)
-          .attr("x", 1e-6)
-          .attr("width", 1e-6)
-          .attr("height", 1e-6);
-  
-          /**
-           * Exiting nodes text fades
-           */
-          nodesExit.select("text")
-          .style("fill-opacity", 1e-6)
-          .style("font-size", 1e-6);
-  
+        var nodesExit = node
+            .transition()
+            .duration(duration)
+            .attr("transform", function (d: any) {
+                return "translate(" + (d.parent.y + nodeWidth) + "," + d.parent.x + ")";
+            })
+            .remove();
 
         /**
          * Exiting nodes shrinks
