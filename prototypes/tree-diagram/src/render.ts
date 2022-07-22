@@ -41,87 +41,60 @@ export interface Data {
     nodes: Node[]
 }
 
-/**
- * Current datastructure for
- * our dataset (will be changed when we used real data)
- */
-export interface Node {
-    /**Name of the node */
-    name: string;
-    /**Type of the node */
-    type: string;
-    /**Marked determines weather the node is rendered, all nodes with same
-     * name and type are marked on the same time
-     */
-    marked: boolean;
-    /**Leafs of the current node */
-    children?: Node[];
+interface CustomLinkObject {
+    source: {
+        x : number,
+        y : number,
+        nodeWidth : number
+    },
+    target: {
+        x : number,
+        y : number,
+        nodeWidth : number
+    }
 }
 
-/**
- * Interface to store the height/size used by the graph
- * (not the same as spotfires built in size and height)
- */
-export interface ChartSize {
-    height: number;
-    width: number;
-}
-
-var treeData = {
-    name: "Eve",
-    type: "black",
-    marked: false,
-    children: [
-        {
-            name: "Cain",
-            type: "grey",
-            marked: false
-        },
-        {
-            name: "Seth",
-            type: "grey",
-            marked: false,
-            children: [
-                {
-                    name: "Enos",
-                    type: "grey",
-                    marked: false
-                },
-                {
-                    name: "Noam",
-                    type: "grey",
-                    marked: false
-                }
-            ]
-        },
-        {
-            name: "Abel",
-            type: "grey",
-            marked: false
-        },
-        {
-            name: "Awan",
-            type: "grey",
-            marked: false,
-            children: [
-                {
-                    name: "Enoch",
-                    type: "grey",
-                    marked: false
-                }
-            ]
-        },
-        {
-            name: "Azura",
-            type: "grey",
-            children: [
-                {
-                    name: "Abel",
-                    type: "grey",
-                    marked: false
-                }
-            ]
-        }
+var treeData = 
+{
+    "value": "Eve",
+    "width": "67",
+    "children": [
+       {
+          "value": "Cain",
+          "width": "67"
+       },
+       {
+          "value": "Seth",
+          "width": "67",
+          "children": [
+             {
+                "value": "Enos",
+                "width": "67"
+             },
+             {
+                "value": "Noam",
+                "width": "67"
+             }
+          ]
+       },
+       {
+          "value": "Abel",
+          "width": "67"
+       },
+       {
+          "value": "Awan",
+          "width": "67",
+          "children": [
+             {
+                "value": "Enoch",
+                "width": "67"
+             }
+          ]
+       },
+       {
+          "value": "Azura",
+          "width": "67"
+       }
     ]
 };
 /**
@@ -158,7 +131,8 @@ export async function render(
         ...defaultConfig,
     };
 
-    let data = data2.nodes[0];
+    //let data = data2.nodes[0];
+    let data = treeData;
 
     /**
      * Calculating the position and size of the chart
@@ -166,7 +140,6 @@ export async function render(
     const width = Math.max(windowSize.width, cfg.minBoxSize);
     const height = Math.max(windowSize.height, cfg.minBoxSize);
     const padding = 70;
-    const nodeWidth = 67;
     var i = 0;
 
     /**
@@ -197,10 +170,10 @@ export async function render(
      */
     let tree = d3.tree().size([height - 2 * padding, width - 2 * padding]);
 
-    var diagonal = function link(d : any) {
-        return "M" + (d.source.y+nodeWidth/2) + "," + d.source.x
-            + "C" + ((d.source.y+nodeWidth/2) + d.target.y) / 2 + "," + d.source.x
-            + " " + ((d.source.y+nodeWidth/2) + d.target.y) / 2 + "," + d.target.x
+    var diagonal = function link(d : CustomLinkObject) {
+        return "M" + (d.source.y+d.source.nodeWidth/2) + "," + d.source.x
+            + "C" + ((d.source.y+d.source.nodeWidth/2) + d.target.y) / 2 + "," + d.source.x
+            + " " + ((d.source.y+d.source.nodeWidth/2) + d.target.y) / 2 + "," + d.target.x
             + " " + d.target.y + "," + d.target.x;
       };
 
@@ -287,8 +260,14 @@ export async function render(
          .attr("class", "link")
           .attr("d", d => {
           return diagonal({
-            source:{x: source.x0, y: source.y0}, 
-            target: {x: source.x0, y: source.y0+source.data.width/2}
+            source:{
+                x: source.x0,
+                y: source.y0,
+                nodeWidth: source.data.width}, 
+            target: {
+                x: source.x0,
+                y: source.y0+source.data.width/2,
+                nodeWidth: source.data.width}
             });
         });
 
@@ -297,7 +276,18 @@ export async function render(
          */ 
         svgChart.selectAll(".link").transition()
         .duration(cfg.duration)
-        .attr("d", diagonal);
+        .attr("d", (d:any) => {
+            return diagonal({
+              source:{
+                  x: d.source.x,
+                  y: d.source.y,
+                  nodeWidth: d.source.data.width}, 
+              target: {
+                  x: d.target.x,
+                  y: d.target.y,
+                  nodeWidth: d.target.data.width}
+              });
+        });
     }
 
     /**
@@ -311,8 +301,16 @@ export async function render(
            .duration(cfg.duration)
            .attr("d", (d:any) => {
 		    return diagonal({
-                source: source, 
-                target: {x: source.x, y: source.y+d.data.width/2}
+                source:{
+                    x: source.x,
+                    y: source.y,
+                    nodeWidth: source.data.width
+                },
+                target: {
+                    x: source.x,
+                    y: source.y+source.data.width/2,
+                    nodeWidth: source.data.width
+                }
                 });
 	        })
            .remove();
@@ -330,7 +328,7 @@ export async function render(
          let nodeEnter = node
          .append("g")
          .attr("class", d => "node " + (d.children ? "node-internal" : "node-leaf"))
-         .attr("transform", (d:any) => "translate(" + (source.y0+d.data.width/2)  + "," + source.x0 + ")")
+         .attr("transform", d => "translate(" + (source.y0+source.data.width/2)  + "," + source.x0 + ")")
          .on("dblclick", click);
 
         nodeEnter.append("rect")
@@ -379,7 +377,7 @@ export async function render(
           var nodesExit = node
           .transition()
           .duration(cfg.duration)
-          .attr("transform", function(d:any) { return "translate(" + (source.y+nodeWidth/2) + "," + source.x + ")"; })
+          .attr("transform", function(d:any) { return "translate(" + (source.y+source.data.width/2) + "," + source.x + ")"; })
           .remove();
   
           /**
