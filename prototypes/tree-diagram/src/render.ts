@@ -2,7 +2,7 @@
 import * as d3 from "d3";
 import { FontInfo, Size, Tooltip } from "spotfire-api";
 import { RenderState } from "./index";
-import { Node } from "./series";
+import { Node, NodeType } from "./series";
 
 // type D3_SELECTION = d3.Selection<SVGGElement, unknown, HTMLElement, any>;
 // type D3_HIERARCHY_SELECTION = d3.Selection<SVGGElement | d3.EnterElement, d3.HierarchyPointNode<unknown> | d3.HierarchyPointLink<unknown>, SVGGElement, unknown>;
@@ -55,43 +55,52 @@ interface CustomLinkObject {
 var treeData = 
 {
     "value": "Eve",
-    "width": "67",
+    "width": 67,
+    "type" : NodeType.Internal,
     "children": [
        {
           "value": "Cain",
-          "width": "67"
+          "width": 67,
+          "type" : NodeType.Leaf,
        },
        {
           "value": "Seth",
-          "width": "67",
+          "width": 67,
+          "type" : NodeType.Internal,
           "children": [
              {
                 "value": "Enos",
-                "width": "67"
+                "width": 67,
+                "type" : NodeType.Leaf
              },
              {
                 "value": "Noam",
-                "width": "67"
+                "width": 67,
+                "type" : NodeType.Leaf
              }
           ]
        },
        {
           "value": "Abel",
-          "width": "67"
+          "width": 67,
+          "type" : NodeType.Leaf
        },
        {
           "value": "Awan",
-          "width": "67",
+          "width": 67,
+          "type" : NodeType.Internal,
           "children": [
              {
                 "value": "Enoch",
-                "width": "67"
+                "width": 67,
+                "type" : NodeType.Leaf
              }
           ]
        },
        {
           "value": "Azura",
-          "width": "67"
+          "width": 67,
+          "type" : NodeType.Leaf
        }
     ]
  };
@@ -158,13 +167,16 @@ export async function render(
     let tree = d3.tree().size([height-(2*padding), width-(2*padding)]);
 
     var diagonal = function link(d : CustomLinkObject) {
-        return "M" + (d.source.y+d.source.nodeWidth/2) + "," + d.source.x
-            + "C" + ((d.source.y+d.source.nodeWidth/2) + d.target.y) / 2 + "," + d.source.x
-            + " " + ((d.source.y+d.source.nodeWidth/2) + d.target.y) / 2 + "," + d.target.x
-            + " " + d.target.y + "," + d.target.x;
+        const s = d.source;
+        const t = d.target;
+        return "M" + (s.y+s.nodeWidth/2) + "," + s.x
+            + "C" + ((s.y+s.nodeWidth/2) + t.y) / 2 + "," + s.x
+            + " " + ((s.y+s.nodeWidth/2) + t.y) / 2 + "," + t.x
+            + " " + t.y + "," + t.x;
       };
 
-    let root : any = d3.hierarchy(data, (d: any) => d.children);
+    let root : any = d3.hierarchy(data);
+    
 
     root.x0 = (height-(2*padding)) / 2;
     root.y0 = 0;
@@ -308,9 +320,9 @@ export async function render(
          */
          let nodeEnter = node
          .append("g")
-         .attr("class", d => "node " + (d.children ? "node-internal" : "node-leaf"))
+         .attr("class", (d : any) => "node " + d.data.type)
          .attr("transform", d => "translate(" + (source.y0+source.data.width/2)  + "," + source.x0 + ")")
-         .on("dblclick", click);
+         .on("dblclick", toggleCollapse);
 
         nodeEnter.append("rect")
          .attr("rx", 10)
@@ -321,19 +333,24 @@ export async function render(
           .attr("width", (d:any) => d.data.width )
           .attr("height", cfg.nodeHeight);
    
+        let f = styling.font;
+
         nodeEnter.append("text")
             .attr("dy", ".35em")
             .style("text-anchor", "middle")
             .text((d : any) => d.data.value)
-            .attr("font-family", styling.font.fontFamily)
-            .attr("font-size", styling.font.fontSize)
+            .attr("font-style", f.fontStyle)
+            .attr("font-weight", f.fontWeight)
+            .attr("font-size", f.fontSize)
+            .attr("font-family", f.fontFamily)
+            .attr("fill", f.color)
             .style("fill-opacity", 1e-6)
             .transition()
              .duration(cfg.duration)
              .style("fill-opacity", 1);
 
         // Toggle children on click.
-        function click(d : any) {
+        function toggleCollapse(d : any) {
             if (d.children) {
             d._children = d.children;
             d.children = null;

@@ -1,8 +1,7 @@
-import { Data, Options, render } from "./render";
+import { Data, render } from "./render";
 import { buildNodeSeries } from "./series";
-import { DataView, DataViewHierarchyNode, Mod } from "spotfire-api";
-import * as d3 from "d3";
-//var events = require("events");
+import { DataView, Mod } from "spotfire-api";
+// var events = require("events");
 
 const Spotfire = window.Spotfire;
 const DEBUG = true;
