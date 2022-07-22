@@ -303,8 +303,7 @@ export async function render(
      * Draws the nodes
      * @param node -
      */
-    function drawNode(node: d3.Selection<any, d3.HierarchyPointNode<unknown>, SVGGElement, unknown>, source : any) {
-
+    function drawNodes(node: d3.Selection<any, d3.HierarchyPointNode<Node>, SVGGElement, unknown>) {
         /**
          * Enter new nodes
          */
@@ -366,8 +365,9 @@ export async function render(
             update(d);
         }
 
-        function singleClick(d : any) {
+        function singleClick(d : d3.HierarchyPointNode<Node>) {
             d.data.marked = !d.data.marked || false;
+            // The colors should be generated earilier from the API
             d3.selectAll(`.${d.data.name}-${d.data.type}`).style("fill", d.data.marked ? "grey" : "white");
             // Call internal api here
             update(d);
