@@ -615,7 +615,7 @@ function mark(node : any ) {
 /**
  * Selects the elements that should be affected by the zoom
  */
-function handleZoom() {
+function handleZoom(): void {
     d3.select("svg g:not(.settings-button)").attr("transform", d3.event.transform);
 }
 
