@@ -1,6 +1,7 @@
-import { Options, render } from "./render";
-// import { buildNodeSeries } from "./series";
-import { DataView } from "spotfire-api";
+import { Data, Options, render } from "./render";
+import { buildNodeSeries } from "./series";
+import { DataView, DataViewHierarchyNode, Mod } from "spotfire-api";
+import * as d3 from "d3";
 //var events = require("events");
 
 const Spotfire = window.Spotfire;
@@ -48,20 +49,14 @@ Spotfire.initialize(async (mod) => {
         // Add properties ...
         // curveType: ModProperty<string>,
     ) {
-        //let data = await buildData(mod, dataView);
-
-        const config: Partial<Options> = {
-            labelOffset: context.styling.scales.font.fontSize * 2
-        };
+        let data = await buildData(mod, dataView);
 
         await render(
             state,
-            // data,
+            data,
             windowSize,
-            config,
             {
-                scales: context.styling.scales.font,
-                stroke: context.styling.scales.line.stroke
+                font: context.styling.general.font,
             },
             mod.controls.tooltip
         );
@@ -127,22 +122,20 @@ export function generalErrorHandler<T extends (dataView: Spotfire.DataView, ...a
     };
 }
 
-// /**
-//  * Construct a data format suitable for consumption in d3.
-//  * @param mod The Mod API object
-//  * @param dataView The mod's DataView
-//  */
-// async function buildData(mod: Mod, dataView: DataView): Promise<Data> {
 
-//     const dataTable = (await mod.visualization.mainTable());
-//     // const columns =  await dataTable.columns(); // Gets the data column names!
+/**
+ * Construct a data format suitable for consumption in d3.
+ * @param mod The Mod API object
+ * @param dataView The mod's DataView
+ */
+async function buildData(mod: Mod, dataView: DataView): Promise<Data> {
 
-//     return {
-//         clearMarking: dataView.clearMarking,
-//         nodes: buildNodeSeries(
-//             dataTable.id,
-//             dataTable.name,
-//             // Column names as DataViewHierarchyNode[] somehow
-//         )
-//     };
-// }
+    const dataTable = (await mod.visualization.mainTable());
+    const columns =  await dataTable.columns(); // Gets the data column names!
+    const fontSize = mod.getRenderContext().styling.general.font.fontSize;
+
+    return {
+        clearMarking: dataView.clearMarking,
+        nodes: buildNodeSeries(columns, fontSize)
+    };
+}

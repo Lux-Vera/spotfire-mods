@@ -22,6 +22,10 @@ body {
     cursor: default;
 }
 
+* {
+    box-sizing: border-box;
+}
+
 .link{
     stroke: #b5b8c4;
     fill: none;
