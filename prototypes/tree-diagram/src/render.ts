@@ -310,13 +310,14 @@ export async function render(
          */
         let nodesEnter = node
          .append("g")
-         .attr("class", d => "node " + (d.children ? "node-internal" : "node-leaf") + ` ${d.data.name}-${d.data.type}`)
+         .attr("class", d => "node " + (d.children ? "node-internal" : "node-leaf"))
          .attr("transform", d => "translate(" + (d.parent ? d.parent.y : d.y)  + "," + (d.parent ? d.parent.x : d.x) + ")")
-         .on("click", singleClick)
-         .on("dblclick", click);
+         .on("dblclick", click)
+         .on("click", singleClick);
          
 
         nodesEnter.append("rect")
+         .attr("class", d => `${d.data.name}-${d.data.type}`)
          .attr("rx", 10)
          .transition()
           .duration(cfg.duration)
@@ -367,17 +368,9 @@ export async function render(
 
         function singleClick(d : any) {
             d.data.marked = !d.data.marked || false;
+            d3.selectAll(`.${d.data.name}-${d.data.type}`).style("fill", d.data.marked ? "grey" : "white");
+            // Call internal api here
             update(d);
-            //let nodes = getAllNodes(d);
-            //nodes.forEach((node : any) => {
-            //    if ((node.data.name == d.data.name) && (node.data.type == d.data.type)) {
-            //        console.log(node);
-            //        node.data.marked = !node.marked.data || false;
-            //        update(node);
-            //    } 
-            //})
-            //console.log(nodes[0].data.name)
-            //update(nodes[0]);
         }
     }
 
