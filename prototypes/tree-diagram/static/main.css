@@ -33,12 +33,13 @@ body {
 
 .node rect{
     stroke: #b5b8c4;
-    fill:#fff;
+    fill:#EDF0F7;
 }
 
 .node text {
     text-overflow: ellipsis;
     white-space: nowrap;
+    fill: #313336;
   }
 
 .node-leaf rect{
