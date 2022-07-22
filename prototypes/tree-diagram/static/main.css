@@ -43,7 +43,6 @@ body {
 .node text {
     text-overflow: ellipsis;
     white-space: nowrap;
-    fill: #313336;
   }
 
 .node-leaf rect{
