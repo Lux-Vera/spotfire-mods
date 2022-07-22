@@ -290,8 +290,10 @@ export async function render(
          .append("path")
          .attr("class", "link")
           .attr("d", d => {
-          var o = {x: source.x0, y: source.y0};
-          return diagonal({source: o, target: o});
+          return diagonal({
+            source:{x: source.x0, y: source.y0}, 
+            target: {x: source.x0, y: source.y0+nodeWidth/2}
+            });
         });
 
          /**
