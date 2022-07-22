@@ -38,6 +38,12 @@ const defaultConfig: Options = {
 
 // marked : boolean -> To be replaced by spotfires internal API
 
+interface Node {
+    name : string;
+    type : string;
+    marked : boolean;
+    children? : Node[]
+}
 
 var treeData = 
 {
@@ -264,7 +270,7 @@ export async function render(
      * Draws the nodes
      * @param node - 
      */
-    function drawNodes(node: d3.Selection<any, d3.HierarchyPointNode<unknown>, SVGGElement, unknown>) {
+    function drawNodes(node: d3.Selection<any, d3.HierarchyPointNode<Node>, SVGGElement, unknown>) {
         /**
          * Enter new nodes
          */
@@ -315,8 +321,9 @@ export async function render(
             update(d);
         }
 
-        function singleClick(d : any) {
+        function singleClick(d : d3.HierarchyPointNode<Node>) {
             d.data.marked = !d.data.marked || false;
+            // The colors should be generated earilier from the API
             d3.selectAll(`.${d.data.name}-${d.data.type}`).style("fill", d.data.marked ? "grey" : "white");
             // Call internal api here
             update(d);
@@ -429,10 +436,10 @@ export async function render(
     }
 }
 
-function mark(node : any ) {
-    //d3.event.ctrlKey ? d.mark("ToggleOrAdd") : d.mark();
-    console.log("CLICK");
-}
+//function mark(node : any ) {
+//    //d3.event.ctrlKey ? d.mark("ToggleOrAdd") : d.mark();
+//    console.log("CLICK");
+//}
 
 
 
