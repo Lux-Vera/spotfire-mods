@@ -566,7 +566,7 @@ function renderZoomInButton(svg: d3.Selection<SVGSVGElement, unknown, HTMLElemen
     let button = svg
         .append("g")
         .attr("class", "settings-button")
-        .attr("id", "reset-zoom")
+        .attr("id", "increase-zoom")
         .on("click", () => {
             d3.select("svg").transition().call(zoom.scaleBy, 1.35);
         });
@@ -599,7 +599,7 @@ function renderZoomOutButton(svg: d3.Selection<SVGSVGElement, unknown, HTMLEleme
     let button = svg
         .append("g")
         .attr("class", "settings-button")
-        .attr("id", "reset-zoom")
+        .attr("id", "decrease-zoom")
         .on("click", () => {
             d3.select("svg").transition().call(zoom.scaleBy, 0.65);
         });
