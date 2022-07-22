@@ -189,6 +189,8 @@ export async function render(
      */
     renderResetZoomButton(svg, zoom);
     renderResetPositionButton(svg, zoom, chartSize);
+    renderZoomInButton(svg, zoom);
+    renderZoomOutButton(svg, zoom);
 
     const svgChart = svg.append("g").attr("transform", "translate(" + padding + "," + 0 + ")");
 
@@ -553,6 +555,72 @@ function renderResetZoomButton(svg: d3.Selection<SVGSVGElement, unknown, HTMLEle
         .style("font-size", "16px")
         //.attr()
         .text("Reset Zoom");
+}
+
+/**
+ * Button to increase the zoom
+ * by a fixed amount.
+ * The text should be replaced by an img
+ */
+function renderZoomInButton(svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any>, zoom: any) {
+    let button = svg
+        .append("g")
+        .attr("class", "settings-button")
+        .attr("id", "reset-zoom")
+        .on("click", () => {
+            d3.select("svg").transition().call(zoom.scaleBy, 1.35);
+        });
+
+    button
+        .append("rect")
+        .attr("height", 20)
+        .attr("width", 110)
+        .attr("x", 10)
+        .attr("y", 80)
+        .style("stroke", "black")
+        .style("fill", "transparent");
+
+    button
+        .append("text")
+        .attr("dy", 95)
+        .attr("dx", 65)
+        .style("text-anchor", "middle")
+        .style("font-size", "16px")
+        //.attr()
+        .text("+ Zoom");
+}
+
+/**
+ * Button to decrease the zoom
+ * by a fixed amount.
+ * The text should be replaced by an img
+ */
+function renderZoomOutButton(svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any>, zoom: any) {
+    let button = svg
+        .append("g")
+        .attr("class", "settings-button")
+        .attr("id", "reset-zoom")
+        .on("click", () => {
+            d3.select("svg").transition().call(zoom.scaleBy, 0.65);
+        });
+
+    button
+        .append("rect")
+        .attr("height", 20)
+        .attr("width", 110)
+        .attr("x", 10)
+        .attr("y", 110)
+        .style("stroke", "black")
+        .style("fill", "transparent");
+
+    button
+        .append("text")
+        .attr("dy", 125)
+        .attr("dx", 65)
+        .style("text-anchor", "middle")
+        .style("font-size", "16px")
+        //.attr()
+        .text("- Zoom");
 }
 
 /**
