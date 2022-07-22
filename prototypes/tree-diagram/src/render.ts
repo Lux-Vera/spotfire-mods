@@ -339,7 +339,7 @@ export async function render(
         /**
          * Enter new nodes
          */
-         let nodeEnter = node
+        let nodesEnter = node
          .append("g")
          .attr("class", d => "node " + (d.children ? "node-internal" : "node-leaf") + ` ${d.data.name}-${d.data.type}`)
          .attr("transform", d => "translate(" + (d.parent ? d.parent.y : d.y)  + "," + (d.parent ? d.parent.x : d.x) + ")")
@@ -360,7 +360,6 @@ export async function render(
 
         nodeEnter.append("text")
          .style("fill", d => {
-            console.log(d)
             if(d.data.marked) {
                 return "grey";
             } else {
@@ -399,15 +398,16 @@ export async function render(
         }
 
         function singleClick(d : any) {
-            console.log("Inside singleClick")
-            let nodes = getAllNodes(d);
-            nodes.forEach((node : any) => {
-                if ((node.data.name == d.data.name) && (node.data.type == d.data.type)) {
-                    console.log(node);
-                    node.data.marked = !node.marked.data || false;
-                    update(node);
-                } 
-            })
+            d.data.marked = !d.data.marked || false;
+            update(d);
+            //let nodes = getAllNodes(d);
+            //nodes.forEach((node : any) => {
+            //    if ((node.data.name == d.data.name) && (node.data.type == d.data.type)) {
+            //        console.log(node);
+            //        node.data.marked = !node.marked.data || false;
+            //        update(node);
+            //    } 
+            //})
             //console.log(nodes[0].data.name)
             //update(nodes[0]);
         }
