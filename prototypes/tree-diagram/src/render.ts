@@ -1,5 +1,6 @@
 // @ts-ignore
 import * as d3 from "d3";
+import { HierarchyPointNode } from "d3";
 import { FontInfo, Size, Tooltip } from "spotfire-api";
 import { getAllNodes } from "./helper";
 import { RenderState } from "./index";
@@ -42,7 +43,12 @@ interface Node {
     name : string;
     type : string;
     marked : boolean;
-    children? : Node[]
+    children? : Node[];
+}
+
+interface ChartSize {
+    height: number;
+    width : number;
 }
 
 var treeData = 
@@ -155,16 +161,27 @@ export async function render(
 
     /**
      * Sets the viewBox to match windowSize
-     */
+     */  
+ 
+    
     svg.attr("viewBox", `0, 0, ${width}, ${height}`);
     svg.style("width", '100%');
     svg.style("height", '100%');
     svg.selectAll("*").remove();
 
+    let zoom = d3.zoom()
+     .on('zoom', handleZoom);    
+
+    let chartSize : ChartSize = {width : width, height : height}
+    renderResetZoomButton(svg, zoom, chartSize);
+    renderResetPositionButton(svg, zoom, chartSize);
+
     const svgChart = svg
             .append("g")
             .attr("transform", "translate(" + padding + "," + 0 + ")");
 
+    
+    
     /**
      * Create tree layout
      */
@@ -187,9 +204,12 @@ export async function render(
      */
     update(root);
 
+    initZoom(zoom);
     /**
      * Draw the rectangular selection
      */
+
+    svg.append("g").attr("class", "settings-button").attr("id", "reset-button")
     drawRectangularSelection();
 
     /**
@@ -303,7 +323,7 @@ export async function render(
         nodesEnter.append("text")
             .attr("dy", ".35em")
             .style("text-anchor", "middle")
-            .text((d : any) => d.data.name)
+            .text((d : HierarchyPointNode<Node>) => d.data.name)
             .style("fill-opacity", 1e-6)
             .transition()
              .duration(duration)
@@ -440,7 +460,66 @@ export async function render(
 //    //d3.event.ctrlKey ? d.mark("ToggleOrAdd") : d.mark();
 //    console.log("CLICK");
 //}
+function renderResetPositionButton(svg: any, zoom : any, size : ChartSize) {
+    let button = svg.append("g")
+        .attr("class", "settings-button")
+        .attr("id", "reset-position")
+        .on("click", () => {
+            d3.select('svg')
+            .transition()
+            .call(zoom.translateTo, 0.5 * size.width, 0.5 * size.height);
+        });
+    
+    button.append("rect")
+     .attr("height", 20)
+     .attr("width", 110)
+     .attr("x", 10)
+     .attr("y", 50)
+     .style("stroke", "black")
+     .style("fill", "transparent");
 
+    button.append("text")
+        .attr("dy", 65)
+        .attr("dx", 65)
+        .style("text-anchor", "middle")
+        .style("font-size", "16px")
+        .text("Reset Position");
+    }
 
+    function renderResetZoomButton(svg: any, zoom : any, size : ChartSize) {
+        let button = svg.append("g")
+            .attr("class", "settings-button")
+            .attr("id", "reset-zoom")
+            .on("click", () => {
+                d3.select('svg')
+                    .transition()
+                    .call(zoom.scaleTo, 1);
+            });
+        
+        button.append("rect")
+         .attr("height", 20)
+         .attr("width", 110)
+         .attr("x", 10)
+         .attr("y", 20)
+         .style("stroke", "black")
+         .style("fill", "transparent");
+    
+        button.append("text")
+            .attr("dy", 35)
+            .attr("dx", 65)
+            .style("text-anchor", "middle")
+            .style("font-size", "16px")
+            //.attr()
+            .text("Reset Zoom");
+        }
 
+function handleZoom() {
+    d3.select('svg g:not(.settings-button)')
+      .attr('transform', d3.event.transform);
+  }
+
+  function initZoom(zoom : any) {
+    d3.select('svg')
+      .call(zoom);
+}
 
