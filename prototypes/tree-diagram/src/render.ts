@@ -4,7 +4,7 @@ import { HierarchyPointNode } from "d3";
 import { FontInfo, Size, Tooltip } from "spotfire-api";
 import { getAllNodes } from "./helper";
 import { RenderState } from "./index";
-import { Node, NodeType } from "./series";
+import { Nodes } from "./series";
 
 // type D3_SELECTION = d3.Selection<SVGGElement, unknown, HTMLElement, any>;
 // type D3_HIERARCHY_SELECTION = d3.Selection<SVGGElement | d3.EnterElement, d3.HierarchyPointNode<unknown> | d3.HierarchyPointLink<unknown>, SVGGElement, unknown>;
@@ -38,7 +38,7 @@ const defaultConfig: Options = {
 
 export interface Data {
     clearMarking(): void;
-    nodes: Node[]
+    nodes: Nodes
 }
 
 interface CustomLinkObject {
@@ -54,6 +54,7 @@ interface CustomLinkObject {
     }
 }
 
+<<<<<<< HEAD
 var treeData = 
 {
     "value": "Eve",
@@ -106,6 +107,8 @@ var treeData =
        }
     ]
 };
+=======
+>>>>>>> 713a291 (New data)
 /**
  * Renders the chart.
  * @param {RenderState} state
@@ -117,7 +120,7 @@ var treeData =
  */
 export async function render(
     state: RenderState,
-    data2: Data,
+    data: Data,
     windowSize: Size,
     styling: {
         font: FontInfo;
@@ -140,8 +143,8 @@ export async function render(
         ...defaultConfig,
     };
 
-    //let data = data2.nodes[0];
-    let data = treeData;
+
+    let nodesData = data.nodes;
 
     /**
      * Calculating the position and size of the chart
@@ -188,9 +191,8 @@ export async function render(
             + " " + t.y + "," + t.x;
       };
 
-    let root : any = d3.hierarchy(data);
+    let root : any = d3.hierarchy(nodesData);
     
-
     root.x0 = (height-(2*padding)) / 2;
     root.y0 = 0;
 
