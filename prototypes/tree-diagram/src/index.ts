@@ -1,10 +1,50 @@
 import { Data, render } from "./render";
-import { buildNodeSeries } from "./series";
+import { buildNodes} from "./series";
 import { DataView, Mod } from "spotfire-api";
 // var events = require("events");
 
 const Spotfire = window.Spotfire;
 const DEBUG = true;
+
+ export interface RawData {
+    value: string,
+    children?: RawData[]
+ }
+
+ var tempData : RawData = {
+    value: "Analyse",
+    children: [
+        {
+            value: "Biker data",
+            children: [
+                { value: "Date" },
+                { value: "Rented bikes" },
+                { value: "Bikes out" }
+            ]
+        },
+        {
+            value: "Weather data",
+            children: [ 
+                { value: "Date"},
+                { value: "Temperature"},
+                { value: "Amount of rain"},
+                { value: "Wind strenght"}
+            ]
+        },
+        {
+            value: "Users",
+            children: [
+                { value: "Name" },
+                { value: "Rentals",
+                children: [
+                    {value: "Date"},
+                    {value: "Bike id"}
+                ]},
+                { value: "Age" }
+            ]
+        }
+    ]
+ };
 
 export interface RenderState {
     preventRender: boolean;
@@ -129,12 +169,14 @@ export function generalErrorHandler<T extends (dataView: Spotfire.DataView, ...a
  */
 async function buildData(mod: Mod, dataView: DataView): Promise<Data> {
 
-    const dataTable = (await mod.visualization.mainTable());
-    const columns =  await dataTable.columns(); // Gets the data column names!
+    // const dataTable = (await mod.visualization.mainTable());
+    // const columns =  await dataTable.columns(); // Gets the data column names!
     const fontSize = mod.getRenderContext().styling.general.font.fontSize;
+    const data = tempData;
 
     return {
         clearMarking: dataView.clearMarking,
-        nodes: buildNodeSeries(columns, fontSize)
+        //nodes: buildNodeSeries(columns, fontSize)
+        nodes: buildNodes(data, fontSize)
     };
 }
