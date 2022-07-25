@@ -187,10 +187,9 @@ export async function render(
     /**
      * Render the buttons to control the graph
      */
-    //renderResetZoomButton(svg, zoom);
-    renderResetPositionButton(svg, zoom, chartSize, tooltip);
-    renderZoomInButton(svg, zoom, tooltip);
-    renderZoomOutButton(svg, zoom, tooltip);
+    renderResetPositionButton(svg, zoom, chartSize, tooltip, {X : 10, Y : 50, width: 20, height: 20});
+    renderZoomInButton(svg, zoom, tooltip, {X : 10, Y: 80, width: 20, height: 20});
+    renderZoomOutButton(svg, zoom, tooltip, {X : 10, Y : 110, width: 20, height: 20});
 
     const svgChart = svg.append("g").attr("transform", "translate(" + padding + "," + 0 + ")");
 

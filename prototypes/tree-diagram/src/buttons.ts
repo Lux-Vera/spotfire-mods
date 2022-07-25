@@ -2,6 +2,13 @@ import * as d3 from "d3";
 import { style } from "d3";
 import { ChartSize } from "./render";
 
+export interface ButtonSettings {
+    X: number; // X position for the top right corner of the button (X=0 is the left side of the page)
+    Y: number; // Y position for the top right corner of the button (Y=0 is the top of the page)
+    width: number; // Width of the button
+    height: number; // Height of the button
+}
+
 /**
  * Draws a button that allows for resetting
  * the graphs horizontal and vertical position
@@ -10,7 +17,8 @@ export function renderResetPositionButton(
     svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any>,
     zoom: any,
     size: ChartSize,
-    tooltip: Spotfire.Tooltip
+    tooltip: Spotfire.Tooltip,
+    settings: ButtonSettings
 ) {
     let button = svg
         .append("g")
@@ -36,101 +44,105 @@ export function renderResetPositionButton(
 
     button
         .append("rect")
-        .attr("height", 20)
-        .attr("width", 20)
+        .attr("height", settings.height)
+        .attr("width", settings.width)
         .attr("class", "reset-button-component")
-        .attr("x", 10)
-        .attr("y", 50)
+        .attr("x", settings.X)
+        .attr("y", settings.Y)
         .style("stroke", "grey")
         .style("fill", "transparent");
 
+    let lineWidth = Math.round(settings.width / 5);
+    let lineHeight = Math.round(settings.height / 5);
+    let margin = 8;
+
     button
         .append("rect")
-        .attr("height", 5)
+        .attr("height", lineHeight)
         .attr("width", 0.5)
         .attr("class", "reset-button-component")
-        .attr("x", 12)
-        .attr("y", 52)
+        .attr("x", settings.X + Math.round(settings.width / margin))
+        .attr("y", settings.Y + Math.round(settings.height / margin))
         .style("stroke", "grey")
         .style("fill", "transparent");
 
     button
         .append("rect")
         .attr("height", 0.5)
-        .attr("width", 5)
+        .attr("width", lineWidth)
         .attr("class", "reset-button-component")
-        .attr("x", 12)
-        .attr("y", 52)
+        .attr("x", settings.X + Math.round(settings.width / margin))
+        .attr("y", settings.Y + Math.round(settings.height / margin))
         .style("stroke", "grey")
         .style("fill", "transparent");
 
     button
         .append("rect")
-        .attr("height", 5)
+        .attr("height", lineHeight)
         .attr("width", 0.5)
         .attr("class", "reset-button-component")
-        .attr("x", 27)
-        .attr("y", 52)
+        .attr("x", settings.X + settings.width - Math.round(settings.width / margin) - 0.5)
+        .attr("y", settings.Y + Math.round(settings.height / margin))
         .style("stroke", "grey")
         .style("fill", "transparent");
 
     button
         .append("rect")
         .attr("height", 0.5)
-        .attr("width", 5)
+        .attr("width", lineWidth)
         .attr("class", "reset-button-component")
-        .attr("x", 21)
-        .attr("y", 52)
+        .attr("x", settings.X + settings.width - Math.round(settings.width / margin) - lineWidth)
+        .attr("y", settings.Y + Math.round(settings.height / margin))
         .style("stroke", "grey")
         .style("fill", "transparent");
 
     button
         .append("rect")
-        .attr("height", 5)
+        .attr("height", lineHeight)
         .attr("width", 0.5)
         .attr("class", "reset-button-component")
-        .attr("x", 12)
-        .attr("y", 62)
+        .attr("x", settings.X + Math.round(settings.width / margin))
+        .attr("y", settings.Y + settings.height - (lineHeight + Math.round(settings.height / margin)))
         .style("stroke", "grey")
         .style("fill", "transparent");
 
     button
         .append("rect")
         .attr("height", 0.5)
-        .attr("width", 5)
+        .attr("width", lineWidth)
         .attr("class", "reset-button-component")
-        .attr("x", 12)
-        .attr("y", 68)
+        .attr("x", settings.X + Math.round(settings.width / margin))
+        .attr("y", settings.Y + settings.height - Math.round(settings.height / margin))
         .style("stroke", "grey")
         .style("fill", "transparent");
 
     button
         .append("rect")
         .attr("height", 0.5)
-        .attr("width", 5)
+        .attr("width", lineWidth)
         .attr("class", "reset-button-component")
-        .attr("x", 21)
-        .attr("y", 68)
+        .attr("x", settings.X + Math.round(settings.width / 2 + settings.width / margin)) // HERE
+        .attr("y", settings.Y + settings.height - Math.round(settings.height / margin))
         .style("stroke", "grey")
         .style("fill", "transparent");
 
     button
         .append("rect")
-        .attr("height", 5)
+        .attr("height", lineHeight)
         .attr("width", 0.5)
         .attr("class", "reset-button-component")
-        .attr("x", 27)
-        .attr("y", 63)
+        .attr("x", settings.X + settings.width - Math.round(settings.width / margin))
+        .attr("y", settings.Y + Math.round(settings.height / 2 + settings.height / margin))
         .style("stroke", "grey")
         .style("fill", "transparent");
 
     button
         .append("circle")
-        .attr("cx", 20)
-        .attr("cy", 60.5)
+        .attr("cx", settings.X + Math.round(settings.width / 2))
+        .attr("cy", settings.Y + Math.round(settings.height / 2))
         .attr("class", "reset-button-component")
         .attr("id", "reset-button-circle")
-        .attr("r", 3)
+        .attr("r", Math.round(Math.sqrt(settings.height * settings.width + settings.width * settings.width) / 8))
         .style("stroke", "grey")
         .style("fill", "grey");
 }
@@ -143,7 +155,8 @@ export function renderResetPositionButton(
 export function renderZoomInButton(
     svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any>,
     zoom: any,
-    tooltip: Spotfire.Tooltip
+    tooltip: Spotfire.Tooltip,
+    settings: ButtonSettings
 ) {
     let button = svg
         .append("g")
@@ -163,31 +176,31 @@ export function renderZoomInButton(
 
     button
         .append("rect")
-        .attr("height", 20)
-        .attr("width", 20)
+        .attr("height", settings.height)
+        .attr("width", settings.width)
         .attr("class", "zoom-in-component")
-        .attr("x", 10)
-        .attr("y", 80)
+        .attr("x", settings.X)
+        .attr("y", settings.Y)
         .style("stroke", "grey")
         .style("fill", "transparent");
 
     button
         .append("rect")
-        .attr("height", 12)
+        .attr("height", Math.round(settings.height * 0.6))
         .attr("width", 0.5)
         .attr("class", "zoom-in-component")
-        .attr("x", 20)
-        .attr("y", 84)
+        .attr("x", settings.X + Math.round(settings.width / 2))
+        .attr("y", settings.Y + Math.round(settings.height / 2 - settings.height * 0.3))
         .style("stroke", "grey")
         .style("fill", "transparent");
 
     button
         .append("rect")
         .attr("height", 0.5)
-        .attr("width", 12)
+        .attr("width", Math.round(settings.width * 0.6))
         .attr("class", "zoom-in-component")
-        .attr("x", 14)
-        .attr("y", 89)
+        .attr("x", settings.X + Math.round(settings.width / 2 - settings.width * 0.3))
+        .attr("y", settings.Y + Math.round(settings.height / 2))
         .style("stroke", "grey")
         .style("fill", "transparent");
 }
@@ -200,7 +213,8 @@ export function renderZoomInButton(
 export function renderZoomOutButton(
     svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any>,
     zoom: any,
-    tooltip: Spotfire.Tooltip
+    tooltip: Spotfire.Tooltip,
+    settings: ButtonSettings
 ) {
     let button = svg
         .append("g")
@@ -219,20 +233,20 @@ export function renderZoomOutButton(
         });
     button
         .append("rect")
-        .attr("height", 20)
-        .attr("width", 20)
+        .attr("height", settings.width)
+        .attr("width", settings.height)
         .attr("class", "zoom-out-component")
-        .attr("x", 10)
-        .attr("y", 110)
+        .attr("x", settings.X)
+        .attr("y", settings.Y)
         .style("stroke", "grey")
         .style("fill", "transparent");
 
     button
         .append("rect")
         .attr("height", 0.5)
-        .attr("width", 12)
-        .attr("x", 14)
-        .attr("y", 118.5)
+        .attr("width", Math.round(settings.width * 0.6))
+        .attr("x", settings.X + Math.round(settings.width / 5))
+        .attr("y", settings.Y + Math.round(settings.height / 2) - 0.5)
         .attr("class", "zoom-out-component")
         .style("stroke", "grey")
         .style("fill", "transparent");
