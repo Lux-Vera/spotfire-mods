@@ -5,6 +5,7 @@ import { FontInfo, Size, Tooltip } from "spotfire-api";
 import { getAllNodes } from "./helper";
 import { RenderState } from "./index";
 import { renderZoomInButton, renderZoomOutButton, renderResetPositionButton } from "./buttons";
+import { renderInfoBox } from "./infobox";
 // type D3_SELECTION = d3.Selection<SVGGElement, unknown, HTMLElement, any>;
 // type D3_HIERARCHY_SELECTION = d3.Selection<SVGGElement | d3.EnterElement, d3.HierarchyPointNode<unknown> | d3.HierarchyPointLink<unknown>, SVGGElement, unknown>;
 /**
@@ -190,6 +191,7 @@ export async function render(
     renderResetPositionButton(svg, zoom, chartSize, tooltip, { X: 10, Y: 50, width: 20, height: 20 });
     renderZoomInButton(svg, zoom, tooltip, { X: 10, Y: 80, width: 20, height: 20 });
     renderZoomOutButton(svg, zoom, tooltip, { X: 10, Y: 110, width: 20, height: 20 });
+    renderInfoBox()
 
     const svgChart = svg.append("g").attr("transform", "translate(" + padding + "," + 0 + ")");
 

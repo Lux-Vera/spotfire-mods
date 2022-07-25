@@ -142,7 +142,7 @@ export function renderResetPositionButton(
         .attr("cy", settings.Y + Math.round(settings.height / 2))
         .attr("class", "reset-button-component")
         .attr("id", "reset-button-circle")
-        .attr("r", Math.round(Math.sqrt(settings.height * settings.width + settings.width * settings.width) / 8))
+        .attr("r", Math.round(Math.sqrt(settings.height ** 2 + settings.width ** 2) / 8))
         .style("stroke", "grey")
         .style("fill", "grey");
 }
