@@ -4,7 +4,7 @@ import { HierarchyPointNode } from "d3";
 import { FontInfo, Size, Tooltip } from "spotfire-api";
 import { getAllNodes } from "./helper";
 import { RenderState } from "./index";
-
+import { renderZoomInButton, renderZoomOutButton, renderResetPositionButton } from "./buttons";
 // type D3_SELECTION = d3.Selection<SVGGElement, unknown, HTMLElement, any>;
 // type D3_HIERARCHY_SELECTION = d3.Selection<SVGGElement | d3.EnterElement, d3.HierarchyPointNode<unknown> | d3.HierarchyPointLink<unknown>, SVGGElement, unknown>;
 /**
@@ -58,7 +58,7 @@ interface Node {
  * Interface to store the height/size used by the graph
  * (not the same as spotfires built in size and height)
  */
-interface ChartSize {
+export interface ChartSize {
     height: number;
     width: number;
 }
@@ -487,183 +487,6 @@ export async function render(
 //    //d3.event.ctrlKey ? d.mark("ToggleOrAdd") : d.mark();
 //    console.log("CLICK");
 //}
-
-/**
- * Draws a button that allows for resetting
- * the graphs horizontal and vertical position
- */
-function renderResetPositionButton(
-    svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any>,
-    zoom: any,
-    size: ChartSize
-) {
-    let button = svg
-        .append("g")
-        .attr("class", "settings-button")
-        .attr("id", "reset-position")
-        .on("click", () => {
-            d3.select("svg")
-                .transition()
-                .call(zoom.translateTo, 0.5 * size.width, 0.5 * size.height).transition().call(zoom.scaleTo, 1);
-        });
-
-    button
-        .append("rect")
-        .attr("height", 20)
-        .attr("width", 110)
-        .attr("x", 10)
-        .attr("y", 50)
-        .style("stroke", "black")
-        .style("fill", "transparent");
-
-    button
-        .append("text")
-        .attr("dy", 65)
-        .attr("dx", 65)
-        .style("text-anchor", "middle")
-        .style("font-size", "16px")
-        .text("Reset Position");
-}
-
-/**
- * Draws a button that allows fpr resetting
- * the zoom of the graph
- */
-function renderResetZoomButton(svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any>, zoom: any) {
-    let button = svg
-        .append("g")
-        .attr("class", "settings-button")
-        .attr("id", "reset-zoom")
-        .on("click", () => {
-            d3.select("svg").transition().call(zoom.scaleTo, 1);
-        });
-
-    button
-        .append("rect")
-        .attr("height", 20)
-        .attr("width", 110)
-        .attr("x", 10)
-        .attr("y", 20)
-        .style("stroke", "black")
-        .style("fill", "transparent");
-
-    button
-        .append("text")
-        .attr("dy", 35)
-        .attr("dx", 65)
-        .style("text-anchor", "middle")
-        .style("font-size", "16px")
-        //.attr()
-        .text("Reset Zoom");
-}
-
-/**
- * Button to increase the zoom
- * by a fixed amount.
- * The text should be replaced by an img
- */
-function renderZoomInButton(svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any>, zoom: any) {
-    let button = svg
-        .append("g")
-        .attr("class", "settings-button")
-        .attr("id", "increase-zoom")
-        .on("click", () => {
-            d3.select("svg").transition().call(zoom.scaleBy, 1.35);
-        });
-
-    //button
-    //    .append("rect")
-    //    .attr("height", 20)
-    //    .attr("width", 110)
-    //    .attr("x", 10)
-    //    .attr("y", 80)
-    //    .style("stroke", "black")
-    //    .style("fill", "transparent");
-    //    
-    //button
-    //    .append("text")
-    //    .attr("dy", 95)
-    //    .attr("dx", 65)
-    //    .style("text-anchor", "middle")
-    //    .style("font-size", "16px")
-    //    //.attr()
-    //    .text("+ Zoom");
-    button
-        .append("rect")
-        .attr("height", 20)
-        .attr("width", 20)
-        .attr("x", 10)
-        .attr("y", 80)
-        .style("stroke", "black")
-        .style("fill", "transparent");
-    
-    button
-        .append("rect")
-        .attr("height", 16)
-        .attr("width", 2)
-        .attr("x", 18)
-        .attr("y", 82)
-        .style("fill", "grey");
-
-    button
-        .append("rect")
-        .attr("height", 2)
-        .attr("width", 16)
-        .attr("x", 12)
-        .attr("y", 88)
-        .style("fill", "grey");
-    
-}
-
-/**
- * Button to decrease the zoom
- * by a fixed amount.
- * The text should be replaced by an img
- */
-function renderZoomOutButton(svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any>, zoom: any) {
-    let button = svg
-        .append("g")
-        .attr("class", "settings-button")
-        .attr("id", "decrease-zoom")
-        .on("click", () => {
-            d3.select("svg").transition().call(zoom.scaleBy, 0.65);
-        });
-
-    //button
-    //    .append("rect")
-    //    .attr("height", 20)
-    //    .attr("width", 110)
-    //    .attr("x", 10)
-    //    .attr("y", 110)
-    //    .style("stroke", "black")
-    //    .style("fill", "transparent");
-//
-    //button
-    //    .append("text")
-    //    .attr("dy", 125)
-    //    .attr("dx", 65)
-    //    .style("text-anchor", "middle")
-    //    .style("font-size", "16px")
-    //    //.attr()
-    //    .text("- Zoom");
-    button
-        .append("rect")
-        .attr("height", 20)
-        .attr("width", 20)
-        .attr("x", 10)
-        .attr("y", 110)
-        .style("stroke", "black")
-        .style("fill", "transparent");
-
-    button
-        .append("rect")
-        .attr("height", 2)
-        .attr("width", 16)
-        .attr("x", 12)
-        .attr("y", 118)
-        .style("fill", "grey");
-
-}
 
 /**
  * Selects the elements that should be affected by the zoom
