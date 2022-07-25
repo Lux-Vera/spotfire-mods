@@ -187,7 +187,7 @@ export async function render(
     /**
      * Render the buttons to control the graph
      */
-    renderResetZoomButton(svg, zoom);
+    //renderResetZoomButton(svg, zoom);
     renderResetPositionButton(svg, zoom, chartSize);
     renderZoomInButton(svg, zoom);
     renderZoomOutButton(svg, zoom);
@@ -504,7 +504,7 @@ function renderResetPositionButton(
         .on("click", () => {
             d3.select("svg")
                 .transition()
-                .call(zoom.translateTo, 0.5 * size.width, 0.5 * size.height);
+                .call(zoom.translateTo, 0.5 * size.width, 0.5 * size.height).transition().call(zoom.scaleTo, 1);
         });
 
     button
@@ -571,23 +571,48 @@ function renderZoomInButton(svg: d3.Selection<SVGSVGElement, unknown, HTMLElemen
             d3.select("svg").transition().call(zoom.scaleBy, 1.35);
         });
 
+    //button
+    //    .append("rect")
+    //    .attr("height", 20)
+    //    .attr("width", 110)
+    //    .attr("x", 10)
+    //    .attr("y", 80)
+    //    .style("stroke", "black")
+    //    .style("fill", "transparent");
+    //    
+    //button
+    //    .append("text")
+    //    .attr("dy", 95)
+    //    .attr("dx", 65)
+    //    .style("text-anchor", "middle")
+    //    .style("font-size", "16px")
+    //    //.attr()
+    //    .text("+ Zoom");
     button
         .append("rect")
         .attr("height", 20)
-        .attr("width", 110)
+        .attr("width", 20)
         .attr("x", 10)
         .attr("y", 80)
         .style("stroke", "black")
         .style("fill", "transparent");
+    
+    button
+        .append("rect")
+        .attr("height", 16)
+        .attr("width", 2)
+        .attr("x", 18)
+        .attr("y", 82)
+        .style("fill", "grey");
 
     button
-        .append("text")
-        .attr("dy", 95)
-        .attr("dx", 65)
-        .style("text-anchor", "middle")
-        .style("font-size", "16px")
-        //.attr()
-        .text("+ Zoom");
+        .append("rect")
+        .attr("height", 2)
+        .attr("width", 16)
+        .attr("x", 12)
+        .attr("y", 88)
+        .style("fill", "grey");
+    
 }
 
 /**
@@ -604,23 +629,40 @@ function renderZoomOutButton(svg: d3.Selection<SVGSVGElement, unknown, HTMLEleme
             d3.select("svg").transition().call(zoom.scaleBy, 0.65);
         });
 
+    //button
+    //    .append("rect")
+    //    .attr("height", 20)
+    //    .attr("width", 110)
+    //    .attr("x", 10)
+    //    .attr("y", 110)
+    //    .style("stroke", "black")
+    //    .style("fill", "transparent");
+//
+    //button
+    //    .append("text")
+    //    .attr("dy", 125)
+    //    .attr("dx", 65)
+    //    .style("text-anchor", "middle")
+    //    .style("font-size", "16px")
+    //    //.attr()
+    //    .text("- Zoom");
     button
         .append("rect")
         .attr("height", 20)
-        .attr("width", 110)
+        .attr("width", 20)
         .attr("x", 10)
         .attr("y", 110)
         .style("stroke", "black")
         .style("fill", "transparent");
 
     button
-        .append("text")
-        .attr("dy", 125)
-        .attr("dx", 65)
-        .style("text-anchor", "middle")
-        .style("font-size", "16px")
-        //.attr()
-        .text("- Zoom");
+        .append("rect")
+        .attr("height", 2)
+        .attr("width", 16)
+        .attr("x", 12)
+        .attr("y", 118)
+        .style("fill", "grey");
+
 }
 
 /**
