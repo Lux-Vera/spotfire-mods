@@ -269,7 +269,11 @@ export async function render(
          .append("g")
          .attr("class", (d : any) => "node " + d.data.type)
          .attr("transform", d => "translate(" + (source.y0+source.data.width/2)  + "," + source.x0 + ")")
-         .on("dblclick", toggleCollapse);
+         .on("dblclick", toggleCollapse)
+         .on("mouseover", (d : any) => {
+            tooltip.show(d.data.tooltip());
+        })
+        .on("mouseout", () => tooltip.hide());;
 
         nodeEnter.append("rect")
          .attr("rx", 10)

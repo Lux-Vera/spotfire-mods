@@ -1,4 +1,4 @@
-import {Column, MarkingOperation } from "spotfire-api";
+import {Column, DataViewRow, MarkingOperation } from "spotfire-api";
 import { RawData } from "./index";
 
 export enum NodeType {
@@ -6,12 +6,13 @@ export enum NodeType {
     Leaf = "node-leaf"
 }
 export interface Nodes {
-    id?: number;
-    value?: string;
-    width?: number;
-    type?: NodeType,
+    value: string;
+    width: number;
+    type: NodeType,
+    tooltip(): string;
     // mark(mode?: MarkingOperation): void;
     children?: Nodes[];
+    id?: number;
 }
 
 export function buildNodes(
@@ -20,12 +21,16 @@ export function buildNodes(
 ) {
     let type = node.children ? NodeType.Internal : NodeType.Leaf;
     let width = calcNodeWidth();
-    let children = node.children?.map((child, index) => buildNodes(child, fontSize));
+    let children = node.children?.map((child) => buildNodes(child, fontSize));
 
     let nodes : Nodes = {
         value: node.value,
         width: width,
         type: type,
+        tooltip() {
+            // TODO -- return row from DataViewRow
+            return "todo";
+        },
         children: children
     }
 
