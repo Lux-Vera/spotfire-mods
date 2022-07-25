@@ -1,7 +1,6 @@
 import * as d3 from "d3";
+import { style } from "d3";
 import { ChartSize } from "./render";
-
-// Todo use spotfire API to render tooltip displaying informations on hoover
 
 /**
  * Draws a button that allows for resetting
@@ -10,23 +9,29 @@ import { ChartSize } from "./render";
 export function renderResetPositionButton(
     svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any>,
     zoom: any,
-    size: ChartSize
+    size: ChartSize,
+    tooltip: Spotfire.Tooltip
 ) {
     let button = svg
         .append("g")
         .attr("class", "settings-button")
         .attr("id", "reset-position")
-        .on('mouseenter', () => {
+        .on("mouseenter", () => {
             d3.selectAll(".reset-button-component").style("stroke", "black");
+            d3.selectAll("#reset-button-circle").style("fill", "black");
+            tooltip.show("Reset Position");
         })
         .on("mouseleave", () => {
-            console.log("Mouse LEave")
-            d3.selectAll(".reset-button-component").style("stroke", "gray");
+            d3.selectAll(".reset-button-component").style("stroke", "grey");
+            d3.selectAll("#reset-button-circle").style("fill", "grey");
+            tooltip.hide();
         })
         .on("click", () => {
             d3.select("svg")
                 .transition()
-                .call(zoom.translateTo, 0.5 * size.width, 0.5 * size.height).transition().call(zoom.scaleTo, 1);
+                .call(zoom.translateTo, 0.5 * size.width, 0.5 * size.height)
+                .transition()
+                .call(zoom.scaleTo, 1);
         });
 
     button
@@ -41,7 +46,7 @@ export function renderResetPositionButton(
 
     button
         .append("rect")
-        .attr("height", 7)
+        .attr("height", 5)
         .attr("width", 0.5)
         .attr("class", "reset-button-component")
         .attr("x", 12)
@@ -52,7 +57,7 @@ export function renderResetPositionButton(
     button
         .append("rect")
         .attr("height", 0.5)
-        .attr("width", 7)
+        .attr("width", 5)
         .attr("class", "reset-button-component")
         .attr("x", 12)
         .attr("y", 52)
@@ -61,7 +66,7 @@ export function renderResetPositionButton(
 
     button
         .append("rect")
-        .attr("height", 6)
+        .attr("height", 5)
         .attr("width", 0.5)
         .attr("class", "reset-button-component")
         .attr("x", 27)
@@ -72,7 +77,7 @@ export function renderResetPositionButton(
     button
         .append("rect")
         .attr("height", 0.5)
-        .attr("width", 6)
+        .attr("width", 5)
         .attr("class", "reset-button-component")
         .attr("x", 21)
         .attr("y", 52)
@@ -81,18 +86,18 @@ export function renderResetPositionButton(
 
     button
         .append("rect")
-        .attr("height", 7)
+        .attr("height", 5)
         .attr("width", 0.5)
         .attr("class", "reset-button-component")
         .attr("x", 12)
-        .attr("y", 61)
+        .attr("y", 62)
         .style("stroke", "grey")
         .style("fill", "transparent");
 
     button
         .append("rect")
         .attr("height", 0.5)
-        .attr("width", 7)
+        .attr("width", 5)
         .attr("class", "reset-button-component")
         .attr("x", 12)
         .attr("y", 68)
@@ -102,7 +107,7 @@ export function renderResetPositionButton(
     button
         .append("rect")
         .attr("height", 0.5)
-        .attr("width", 7)
+        .attr("width", 5)
         .attr("class", "reset-button-component")
         .attr("x", 21)
         .attr("y", 68)
@@ -111,41 +116,46 @@ export function renderResetPositionButton(
 
     button
         .append("rect")
-        .attr("height", 6)
+        .attr("height", 5)
         .attr("width", 0.5)
         .attr("class", "reset-button-component")
         .attr("x", 27)
-        .attr("y", 61)
+        .attr("y", 63)
         .style("stroke", "grey")
         .style("fill", "transparent");
 
     button
         .append("circle")
         .attr("cx", 20)
-        .attr("cy", 61)
+        .attr("cy", 60.5)
         .attr("class", "reset-button-component")
-        .attr("r", 4)
+        .attr("id", "reset-button-circle")
+        .attr("r", 3)
         .style("stroke", "grey")
-        .style("fill", "transparent")
-
+        .style("fill", "grey");
 }
-
 
 /**
  * Button to increase the zoom
  * by a fixed amount.
  * The text should be replaced by an img
  */
-export function renderZoomInButton(svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any>, zoom: any) {
+export function renderZoomInButton(
+    svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any>,
+    zoom: any,
+    tooltip: Spotfire.Tooltip
+) {
     let button = svg
         .append("g")
         .attr("class", "settings-button")
         .attr("id", "increase-zoom")
         .on("mouseenter", () => {
             d3.selectAll(".zoom-in-component").style("stroke", "black");
+            tooltip.show("Zoom in");
         })
         .on("mouseleave", () => {
             d3.selectAll(".zoom-in-component").style("stroke", "grey");
+            tooltip.hide();
         })
         .on("click", () => {
             d3.select("svg").transition().call(zoom.scaleBy, 1.35);
@@ -158,9 +168,9 @@ export function renderZoomInButton(svg: d3.Selection<SVGSVGElement, unknown, HTM
         .attr("class", "zoom-in-component")
         .attr("x", 10)
         .attr("y", 80)
-        .style("stroke", "black")
+        .style("stroke", "grey")
         .style("fill", "transparent");
-    
+
     button
         .append("rect")
         .attr("height", 12)
@@ -180,7 +190,6 @@ export function renderZoomInButton(svg: d3.Selection<SVGSVGElement, unknown, HTM
         .attr("y", 89)
         .style("stroke", "grey")
         .style("fill", "transparent");
-    
 }
 
 /**
@@ -188,21 +197,26 @@ export function renderZoomInButton(svg: d3.Selection<SVGSVGElement, unknown, HTM
  * by a fixed amount.
  * The text should be replaced by an img
  */
-export function renderZoomOutButton(svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any>, zoom: any) {
+export function renderZoomOutButton(
+    svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any>,
+    zoom: any,
+    tooltip: Spotfire.Tooltip
+) {
     let button = svg
         .append("g")
         .attr("class", "settings-button")
         .attr("id", "decrease-zoom")
         .on("mouseenter", () => {
             d3.selectAll(".zoom-out-component").style("stroke", "black");
+            tooltip.show("Zoom out");
         })
         .on("mouseleave", () => {
             d3.selectAll(".zoom-out-component").style("stroke", "grey");
+            tooltip.hide();
         })
         .on("click", () => {
             d3.select("svg").transition().call(zoom.scaleBy, 0.65);
         });
-;
     button
         .append("rect")
         .attr("height", 20)
@@ -222,5 +236,4 @@ export function renderZoomOutButton(svg: d3.Selection<SVGSVGElement, unknown, HT
         .attr("class", "zoom-out-component")
         .style("stroke", "grey")
         .style("fill", "transparent");
-
 }

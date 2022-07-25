@@ -188,9 +188,9 @@ export async function render(
      * Render the buttons to control the graph
      */
     //renderResetZoomButton(svg, zoom);
-    renderResetPositionButton(svg, zoom, chartSize);
-    renderZoomInButton(svg, zoom);
-    renderZoomOutButton(svg, zoom);
+    renderResetPositionButton(svg, zoom, chartSize, tooltip);
+    renderZoomInButton(svg, zoom, tooltip);
+    renderZoomOutButton(svg, zoom, tooltip);
 
     const svgChart = svg.append("g").attr("transform", "translate(" + padding + "," + 0 + ")");
 
