@@ -25,12 +25,12 @@ export function renderResetPositionButton(
         .attr("class", "settings-button")
         .attr("id", "reset-position")
         .on("mouseenter", () => {
-            d3.selectAll(".reset-button-component").style("stroke", "black");
-            d3.selectAll("#reset-button-circle").style("fill", "black");
+            d3.selectAll(".reset-button-component").style("stroke", "#3050ef").style("fill", "#ebefff");
+            d3.selectAll("#reset-button-circle").style("fill", "#3050ef").style("fill", "#3050ef");
             tooltip.show("Reset Position");
         })
         .on("mouseleave", () => {
-            d3.selectAll(".reset-button-component").style("stroke", "grey");
+            d3.selectAll(".reset-button-component").style("stroke", "grey").style("fill", "transparent");
             d3.selectAll("#reset-button-circle").style("fill", "grey");
             tooltip.hide();
         })
@@ -163,11 +163,11 @@ export function renderZoomInButton(
         .attr("class", "settings-button")
         .attr("id", "increase-zoom")
         .on("mouseenter", () => {
-            d3.selectAll(".zoom-in-component").style("stroke", "black");
+            d3.selectAll(".zoom-in-component").style("stroke", "#3050ef").style("fill", "#ebefff");
             tooltip.show("Zoom in");
         })
         .on("mouseleave", () => {
-            d3.selectAll(".zoom-in-component").style("stroke", "grey");
+            d3.selectAll(".zoom-in-component").style("stroke", "grey").style("fill", "transparent");
             tooltip.hide();
         })
         .on("click", () => {
@@ -221,11 +221,11 @@ export function renderZoomOutButton(
         .attr("class", "settings-button")
         .attr("id", "decrease-zoom")
         .on("mouseenter", () => {
-            d3.selectAll(".zoom-out-component").style("stroke", "black");
+            d3.selectAll(".zoom-out-component").style("stroke", "#3050ef").style("fill", "#ebefff");
             tooltip.show("Zoom out");
         })
         .on("mouseleave", () => {
-            d3.selectAll(".zoom-out-component").style("stroke", "grey");
+            d3.selectAll(".zoom-out-component").style("stroke", "grey").style("fill", "transparent");
             tooltip.hide();
         })
         .on("click", () => {

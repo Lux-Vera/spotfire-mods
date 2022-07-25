@@ -187,9 +187,9 @@ export async function render(
     /**
      * Render the buttons to control the graph
      */
-    renderResetPositionButton(svg, zoom, chartSize, tooltip, {X : 10, Y : 50, width: 20, height: 20});
-    renderZoomInButton(svg, zoom, tooltip, {X : 10, Y: 80, width: 20, height: 20});
-    renderZoomOutButton(svg, zoom, tooltip, {X : 10, Y : 110, width: 20, height: 20});
+    renderResetPositionButton(svg, zoom, chartSize, tooltip, { X: 10, Y: 50, width: 20, height: 20 });
+    renderZoomInButton(svg, zoom, tooltip, { X: 10, Y: 80, width: 20, height: 20 });
+    renderZoomOutButton(svg, zoom, tooltip, { X: 10, Y: 110, width: 20, height: 20 });
 
     const svgChart = svg.append("g").attr("transform", "translate(" + padding + "," + 0 + ")");
 
@@ -353,6 +353,7 @@ export async function render(
         nodesEnter
             .append("text")
             .attr("dy", ".35em")
+            .attr("class", (d) => `${d.data.name}-${d.data.type}-text`)
             .style("text-anchor", "middle")
             .text((d: HierarchyPointNode<Node>) => d.data.name)
             .style("fill-opacity", 1e-6)
@@ -375,7 +376,11 @@ export async function render(
         function singleClick(d: d3.HierarchyPointNode<Node>) {
             d.data.marked = !d.data.marked || false;
             // The colors should be generated earilier from the API
-            d3.selectAll(`.${d.data.name}-${d.data.type}`).style("fill", d.data.marked ? "grey" : "white");
+            d3.selectAll(`.${d.data.name}-${d.data.type}`)
+                .style("stroke", d.data.marked ? "#3050ef" : "grey")
+                .style("fill", d.data.marked ? "#ebefff" : "white");
+
+            d3.selectAll(`.${d.data.name}-${d.data.type}-text`).style("fill", d.data.marked ? "#3050ef" : "grey");
             // Call internal api here
             update(d);
         }
