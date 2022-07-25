@@ -1,35 +1,38 @@
 import {Column, MarkingOperation } from "spotfire-api";
+import { RawData } from "./index";
 
 export enum NodeType {
     Internal = "node-internal",
     Leaf = "node-leaf"
 }
-export interface Node {
-    // id: string;
+export interface Nodes {
+    id?: number;
     value?: string;
     width?: number;
     type?: NodeType,
     // mark(mode?: MarkingOperation): void;
-    children?: Node[];
+    children?: Nodes[];
 }
 
-export function buildNodeSeries(
-    nodes: Column[],
-    fontSize: number,
+export function buildNodes(
+    node: RawData,
+    fontSize: number
 ) {
+    let type = node.children ? NodeType.Internal : NodeType.Leaf;
+    let width = calcNodeWidth();
+    let children = node.children?.map((child, index) => buildNodes(child, fontSize));
 
-    //TODO
+    let nodes : Nodes = {
+        value: node.value,
+        width: width,
+        type: type,
+        children: children
+    }
 
-    let childNodes : Node[] = nodes.map((node) => ({
-        // id: node.,
-        value: node.name,
-        width: node.name.length*fontSize*0.7,
-        type: NodeType.Leaf
-        //mark: (m) => node.mark(m)
-    }));
+    return nodes;
 
-    //Fake build
-    let nodeSeries : Node[] = [{ value: "SuperStore", width: "SuperStore".length*fontSize, type: NodeType.Internal, children: childNodes}]
-
-    return nodeSeries;
+    function calcNodeWidth() : number{
+        //TODO -- needs improvement
+        return fontSize*node.value.length*0.7;
+    }
 }
