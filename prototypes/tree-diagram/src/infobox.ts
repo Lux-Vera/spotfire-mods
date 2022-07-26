@@ -128,7 +128,7 @@ function generateReferencesByContainer(
         .append("div")
         .attr("class", "references-container")
         .style("padding", "10px")
-        .style("padding-top", "0px") 
+        .style("padding-top", "0px")
         .style("margin-top", "0px")
         .append("h2")
         .text("Parents")
@@ -170,7 +170,7 @@ function generateReferencesContainer(
         .append("div")
         .attr("class", "references-container")
         .style("padding", "10px")
-        .style("padding-top", "0px") 
+        .style("padding-top", "0px")
         .append("h2")
         .text("Children")
         .style("font-size", "20px")
@@ -202,8 +202,8 @@ function generateReferencesContainer(
 function generateCallSite(
     container: d3.Selection<d3.BaseType, unknown, HTMLElement, any>,
     d: d3.HierarchyPointNode<Node>,
-    update : any,
-    tooltip : Tooltip
+    update: any,
+    tooltip: Tooltip
 ) {
     let sites = getCallSites(d);
 
@@ -211,7 +211,7 @@ function generateCallSite(
         .append("div")
         .attr("class", "call-site-container")
         .style("padding", "10px")
-        .style("padding-top", "0px") 
+        .style("padding-top", "0px")
         .append("h2")
         .text("Root Path")
         .style("font-size", "20px")
@@ -220,7 +220,11 @@ function generateCallSite(
         .append("ul");
 
     sites.forEach((siteList) => {
-        let li = csContainer.append("li").style("font-size", "16px").style("margin-right", "10px").style("margin-top", "0px");
+        let li = csContainer
+            .append("li")
+            .style("font-size", "16px")
+            .style("margin-right", "10px")
+            .style("margin-top", "0px");
         siteList.forEach((site, idx) => {
             if (idx !== 0) {
                 li.append("span")
@@ -236,20 +240,20 @@ function generateCallSite(
                     .style("color", "#3050ef")
                     .style("font-size", "16px")
                     .on("click", () => {
-                        singleClick(site, update, tooltip)
+                        singleClick(site, update, tooltip);
                     });
             }
         });
     });
 }
 
-function getCallSites(d: d3.HierarchyPointNode<Node>) : d3.HierarchyPointNode<Node>[][] {
-    let sites : d3.HierarchyPointNode<Node>[][] = []
+function getCallSites(d: d3.HierarchyPointNode<Node>): d3.HierarchyPointNode<Node>[][] {
+    let sites: d3.HierarchyPointNode<Node>[][] = [];
     let allNodes = getAllNodes(d);
-    allNodes.forEach(node => {
-        if(compareNodes(node, d)) {
-            sites.push(node.ancestors().reverse())
+    allNodes.forEach((node) => {
+        if (compareNodes(node, d)) {
+            sites.push(node.ancestors().reverse());
         }
-    })
+    });
     return sites;
 }
