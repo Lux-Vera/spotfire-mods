@@ -390,3 +390,38 @@ export async function render(
 //     d3.event.ctrlKey ? d.mark("ToggleOrAdd") : d.mark();
 // }
 
+/**
+ * Selects the elements that should be affected by the zoom
+ */
+function handleZoom() {
+    d3.select("svg g:not(.settings-button)").attr("transform", d3.event.transform);
+}
+
+/**
+ * Calls the zoom on the svg
+ */
+function initZoom(zoom: any) {
+    d3.select("svg").call(zoom);
+}
+
+export function singleClick(d: d3.HierarchyPointNode<Node>, update: any, tooltip: Tooltip) {
+    d.data.marked = !d.data.marked || false;
+    // The colors should be generated earilier from the API
+
+    // Remove previous markings
+    d3.selectAll(".node-rectangle").style("stroke", "grey").style("fill", "white");
+    d3.selectAll(".node-text").style("fill", "grey");
+    d3.selectAll(".info-box").remove();
+
+    if (d.data.marked) {
+        renderInfoBox(d, update, tooltip);
+    }
+
+    d3.selectAll(`.${d.data.name}-${d.data.type}`)
+        .style("stroke", d.data.marked ? "#3050ef" : "grey")
+        .style("fill", d.data.marked ? "#ebefff" : "white");
+
+    d3.selectAll(`.${d.data.name}-${d.data.type}-text`).style("fill", d.data.marked ? "#3050ef" : "grey");
+    // Call internal api here
+    update(d);
+}
