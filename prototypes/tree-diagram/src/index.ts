@@ -1,10 +1,50 @@
-import { Options, render } from "./render";
-// import { buildNodeSeries } from "./series";
-import { DataView } from "spotfire-api";
-//var events = require("events");
+import { Data, render } from "./render";
+import { buildNodes} from "./series";
+import { DataView, Mod } from "spotfire-api";
+// var events = require("events");
 
 const Spotfire = window.Spotfire;
 const DEBUG = true;
+
+ export interface RawData {
+    value: string,
+    children?: RawData[]
+ }
+
+ var tempData : RawData = {
+    value: "Analyse",
+    children: [
+        {
+            value: "Biker data",
+            children: [
+                { value: "Date" },
+                { value: "Rented bikes" },
+                { value: "Bikes out" }
+            ]
+        },
+        {
+            value: "Weather data",
+            children: [ 
+                { value: "Date"},
+                { value: "Temperature"},
+                { value: "Amount of rain"},
+                { value: "Wind strenght"}
+            ]
+        },
+        {
+            value: "Users",
+            children: [
+                { value: "Name" },
+                { value: "Rentals",
+                children: [
+                    {value: "Date"},
+                    {value: "Bike id"}
+                ]},
+                { value: "Age" }
+            ]
+        }
+    ]
+ };
 
 export interface RenderState {
     preventRender: boolean;
@@ -48,20 +88,14 @@ Spotfire.initialize(async (mod) => {
         // Add properties ...
         // curveType: ModProperty<string>,
     ) {
-        //let data = await buildData(mod, dataView);
-
-        const config: Partial<Options> = {
-            labelOffset: context.styling.scales.font.fontSize * 2
-        };
+        let data = await buildData(mod, dataView);
 
         await render(
             state,
-            // data,
+            data,
             windowSize,
-            config,
             {
-                scales: context.styling.scales.font,
-                stroke: context.styling.scales.line.stroke
+                font: context.styling.general.font,
             },
             mod.controls.tooltip
         );
@@ -127,22 +161,22 @@ export function generalErrorHandler<T extends (dataView: Spotfire.DataView, ...a
     };
 }
 
-// /**
-//  * Construct a data format suitable for consumption in d3.
-//  * @param mod The Mod API object
-//  * @param dataView The mod's DataView
-//  */
-// async function buildData(mod: Mod, dataView: DataView): Promise<Data> {
 
-//     const dataTable = (await mod.visualization.mainTable());
-//     // const columns =  await dataTable.columns(); // Gets the data column names!
+/**
+ * Construct a data format suitable for consumption in d3.
+ * @param mod The Mod API object
+ * @param dataView The mod's DataView
+ */
+async function buildData(mod: Mod, dataView: DataView): Promise<Data> {
 
-//     return {
-//         clearMarking: dataView.clearMarking,
-//         nodes: buildNodeSeries(
-//             dataTable.id,
-//             dataTable.name,
-//             // Column names as DataViewHierarchyNode[] somehow
-//         )
-//     };
-// }
+    // const dataTable = (await mod.visualization.mainTable());
+    // const columns =  await dataTable.columns(); // Gets the data column names!
+    const fontSize = mod.getRenderContext().styling.general.font.fontSize;
+    const data = tempData;
+
+    return {
+        clearMarking: dataView.clearMarking,
+        //nodes: buildNodeSeries(columns, fontSize)
+        nodes: buildNodes(data, fontSize)
+    };
+}
