@@ -42,7 +42,7 @@ const defaultConfig: Options = {
  * Current datastructure for
  * our dataset (will be changed when we used real data)
  */
-interface Node {
+export interface Node {
     /**Name of the node */
     name: string;
     /**Type of the node */
@@ -191,7 +191,6 @@ export async function render(
     renderResetPositionButton(svg, zoom, chartSize, tooltip, { X: 10, Y: 50, width: 20, height: 20 });
     renderZoomInButton(svg, zoom, tooltip, { X: 10, Y: 80, width: 20, height: 20 });
     renderZoomOutButton(svg, zoom, tooltip, { X: 10, Y: 110, width: 20, height: 20 });
-    renderInfoBox()
 
     const svgChart = svg.append("g").attr("transform", "translate(" + padding + "," + 0 + ")");
 
@@ -332,11 +331,11 @@ export async function render(
                 (d) => "translate(" + (d.parent ? d.parent.y : d.y) + "," + (d.parent ? d.parent.x : d.x) + ")"
             )
             .on("dblclick", click)
-            .on("click", singleClick);
+            .on("click", (d) => singleClick(d, update, tooltip));
 
         nodesEnter
             .append("rect")
-            .attr("class", (d) => `${d.data.name}-${d.data.type}`)
+            .attr("class", (d) => `${d.data.name}-${d.data.type}` + " node-rectangle")
             .attr("rx", 10)
             .style("fill", (d) => {
                 if (d.data.marked) {
@@ -355,7 +354,7 @@ export async function render(
         nodesEnter
             .append("text")
             .attr("dy", ".35em")
-            .attr("class", (d) => `${d.data.name}-${d.data.type}-text`)
+            .attr("class", (d) => `${d.data.name}-${d.data.type}-text` + " node-text")
             .style("text-anchor", "middle")
             .text((d: HierarchyPointNode<Node>) => d.data.name)
             .style("fill-opacity", 1e-6)
@@ -372,18 +371,6 @@ export async function render(
                 d.children = d._children;
                 d._children = null;
             }
-            update(d);
-        }
-
-        function singleClick(d: d3.HierarchyPointNode<Node>) {
-            d.data.marked = !d.data.marked || false;
-            // The colors should be generated earilier from the API
-            d3.selectAll(`.${d.data.name}-${d.data.type}`)
-                .style("stroke", d.data.marked ? "#3050ef" : "grey")
-                .style("fill", d.data.marked ? "#ebefff" : "white");
-
-            d3.selectAll(`.${d.data.name}-${d.data.type}-text`).style("fill", d.data.marked ? "#3050ef" : "grey");
-            // Call internal api here
             update(d);
         }
     }
@@ -506,4 +493,26 @@ function handleZoom() {
  */
 function initZoom(zoom: any) {
     d3.select("svg").call(zoom);
+}
+
+export function singleClick(d: d3.HierarchyPointNode<Node>, update: any, tooltip: Tooltip) {
+    d.data.marked = !d.data.marked || false;
+    // The colors should be generated earilier from the API
+
+    // Remove previous markings
+    d3.selectAll(".node-rectangle").style("stroke", "grey").style("fill", "white");
+    d3.selectAll(".node-text").style("fill", "grey");
+    d3.selectAll(".info-box").remove();
+
+    if (d.data.marked) {
+        renderInfoBox(d, update, tooltip);
+    }
+
+    d3.selectAll(`.${d.data.name}-${d.data.type}`)
+        .style("stroke", d.data.marked ? "#3050ef" : "grey")
+        .style("fill", d.data.marked ? "#ebefff" : "white");
+
+    d3.selectAll(`.${d.data.name}-${d.data.type}-text`).style("fill", d.data.marked ? "#3050ef" : "grey");
+    // Call internal api here
+    update(d);
 }
