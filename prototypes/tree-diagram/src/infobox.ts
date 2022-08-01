@@ -1,7 +1,7 @@
 import * as d3 from "d3";
 import { Node, singleClick } from "./render";
 import { getAllNodes, compareNodes } from "./helper";
-import { Tooltip } from "spotfire-api";
+import { Tooltip, FontInfo } from "spotfire-api";
 
 function getReferences(d: d3.HierarchyPointNode<Node>): Node[] {
     let nodes = getAllNodes(d);
@@ -19,7 +19,7 @@ function getReferencedBy(d: d3.HierarchyPointNode<Node>): Node[] {
     let referencedBy: Node[] = [];
     nodes.forEach((node) => {
         if (node.data.children !== undefined) {
-            if (node.data.children?.filter((n) => n.name === d.data.name).length > 0) {
+            if (node.data.children?.filter((n) => n.value === d.data.value).length > 0) {
                 referencedBy.push(node.data);
             }
         }
@@ -27,7 +27,7 @@ function getReferencedBy(d: d3.HierarchyPointNode<Node>): Node[] {
     return referencedBy;
 }
 
-export function renderInfoBox(d: d3.HierarchyPointNode<Node>, update: any, tooltip: Tooltip) {
+export function renderInfoBox(d: d3.HierarchyPointNode<Node>, update: any, tooltip: Tooltip, f: FontInfo) {
     d3.selectAll(".info-box").remove();
     let container = d3.select("#mod-container");
     container
@@ -52,15 +52,15 @@ export function renderInfoBox(d: d3.HierarchyPointNode<Node>, update: any, toolt
 
     let referencedBy = getReferencedBy(d);
     if (referencedBy.length !== 0) {
-        generateReferencesByContainer(infoBox, referencedBy, d, update, tooltip);
+        generateReferencesByContainer(infoBox, referencedBy, d, update, tooltip, f);
     }
 
     let references = getReferences(d);
     if (references.length !== 0) {
-        generateReferencesContainer(infoBox, references, d, update, tooltip);
+        generateReferencesContainer(infoBox, references, d, update, tooltip, f);
     }
 
-    generateCallSite(infoBox, d, update, tooltip);
+    generateCallSite(infoBox, d, update, tooltip, f);
 }
 
 function generateHeader(
@@ -122,7 +122,8 @@ function generateReferencesByContainer(
     references: Node[],
     d: d3.HierarchyPointNode<Node>,
     update: any,
-    tooltip: Tooltip
+    tooltip: Tooltip,
+    f: FontInfo
 ) {
     container
         .append("div")
@@ -144,15 +145,15 @@ function generateReferencesByContainer(
             .style("list-style-type", "none")
             .style("font-size", "16px")
             .append("span")
-            .text(reference.name)
+            .text(reference.value)
             .style("color", "blue")
             .style("text-decoration", "underline")
             .style("margin-left", "20px")
             .on("click", () => {
                 let nodes = getAllNodes(d);
                 nodes.forEach((node) => {
-                    if (node.data.name == reference.name && node.data.type == reference.type) {
-                        singleClick(node, update, tooltip);
+                    if (node.data.value == reference.value && node.data.type == reference.type) {
+                        singleClick(node, update, tooltip, f);
                     }
                 });
             });
@@ -164,7 +165,8 @@ function generateReferencesContainer(
     references: Node[],
     d: d3.HierarchyPointNode<Node>,
     update: any,
-    tooltip: Tooltip
+    tooltip: Tooltip,
+    f: FontInfo
 ) {
     container
         .append("div")
@@ -184,15 +186,15 @@ function generateReferencesContainer(
             .style("font-size", "16px")
             .style("list-style-type", "none")
             .append("span")
-            .text(reference.name)
+            .text(reference.value)
             .style("color", "#3050ef")
             .style("text-decoration", "underline")
             .style("margin-left", "20px")
             .on("click", () => {
                 let nodes = getAllNodes(d);
                 nodes.forEach((node) => {
-                    if (node.data.name == reference.name && node.data.type == reference.type) {
-                        singleClick(node, update, tooltip);
+                    if (node.data.value == reference.value && node.data.type == reference.type) {
+                        singleClick(node, update, tooltip, f);
                     }
                 });
             });
@@ -203,7 +205,8 @@ function generateCallSite(
     container: d3.Selection<d3.BaseType, unknown, HTMLElement, any>,
     d: d3.HierarchyPointNode<Node>,
     update: any,
-    tooltip: Tooltip
+    tooltip: Tooltip,
+    f: FontInfo
 ) {
     let sites = getCallSites(d);
 
@@ -228,19 +231,19 @@ function generateCallSite(
         siteList.forEach((site, idx) => {
             if (idx !== 0) {
                 li.append("span")
-                    .text(` > ${site.data.name}`)
+                    .text(` > ${site.data.value}`)
                     .style("color", "#3050ef")
                     .style("font-size", "16x")
                     .on("click", () => {
-                        singleClick(site, update, tooltip);
+                        singleClick(site, update, tooltip, f);
                     });
             } else {
                 li.append("span")
-                    .text(site.data.name)
+                    .text(site.data.value)
                     .style("color", "#3050ef")
                     .style("font-size", "16px")
                     .on("click", () => {
-                        singleClick(site, update, tooltip);
+                        singleClick(site, update, tooltip, f);
                     });
             }
         });
