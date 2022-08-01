@@ -468,7 +468,7 @@ function initZoom(zoom: any) {
 export function singleClick(d: any, update: any, tooltip: Tooltip, f: FontInfo) {
     d.data.marked = !d.data.marked || false;
     // The colors should be generated earilier from the API
-    console.log("f.color: ", f.color);
+
     // Remove previous markings
     d3.selectAll(".node-rectangle").style("stroke", "grey").style("fill", "white");
     console.log(d3.selectAll(".node-text"));
@@ -482,7 +482,7 @@ export function singleClick(d: any, update: any, tooltip: Tooltip, f: FontInfo) 
     clearAllMarkings(d);
 
     if (d.data.marked) {
-        //renderInfoBox(d, update, tooltip);
+        renderInfoBox(d, update, tooltip, f);
     }
 
     d3.selectAll(`.${d.data.value.replace(/\s/g, "-")}`)
