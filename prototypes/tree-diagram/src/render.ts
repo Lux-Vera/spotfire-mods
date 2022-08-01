@@ -493,7 +493,7 @@ function handleZoom() {
  * Calls the zoom on the svg
  */
 function initZoom(zoom: any) {
-    d3.select("svg").call(zoom);
+    d3.select("svg").call(zoom).on("dblclick.zoom", null);
 }
 
 export function singleClick(d: any, update: any, tooltip: Tooltip, f: FontInfo) {
