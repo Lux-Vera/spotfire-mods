@@ -136,8 +136,8 @@ export async function render(
     /**
      * Draw the rectangular selection
      */
-    drawRectangularSelection();
-
+    //drawRectangularSelection();
+    
     /**
      * Draws a group.
      * @param source - source node that will be updated
@@ -168,6 +168,13 @@ export async function render(
 
         drawNode(node.enter(), source);
 
+        /**
+         * Initialize zooming
+         */
+        let zoom = d3.zoom()
+            .on('zoom', handleZoom);
+        
+        initZoom(zoom);
         /**
          * Transition nodes to new position
          */ 
@@ -422,10 +429,8 @@ export async function render(
 // function mark(d: Node ) {
 //     d3.event.ctrlKey ? d.mark("ToggleOrAdd") : d.mark();
 // }
-/**
- * Selects the elements that should be affected by the zoom
- */
- function handleZoom() {
+
+function handleZoom() {
     d3.select("svg g:not(.settings-button)").attr("transform", d3.event.transform);
 }
 
