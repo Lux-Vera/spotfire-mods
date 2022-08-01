@@ -3,7 +3,7 @@ import * as d3 from "d3";
 import { FontInfo, Size, Tooltip } from "spotfire-api";
 import { RenderState } from "./index";
 import { Nodes } from "./series";
-
+import { renderInfoBox } from "./infobox";
 // type D3_SELECTION = d3.Selection<SVGGElement, unknown, HTMLElement, any>;
 // type D3_HIERARCHY_SELECTION = d3.Selection<SVGGElement | d3.EnterElement, d3.HierarchyPointNode<unknown> | d3.HierarchyPointLink<unknown>, SVGGElement, unknown>;
 /**
