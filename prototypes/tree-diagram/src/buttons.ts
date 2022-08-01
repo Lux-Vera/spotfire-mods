@@ -1,7 +1,10 @@
 import * as d3 from "d3";
 import { style } from "d3";
-import { ChartSize } from "./render";
 
+export interface ChartSize {
+    height: number;
+    width: number;
+}
 export interface ButtonSettings {
     X: number; // X position for the top right corner of the button (X=0 is the left side of the page)
     Y: number; // Y position for the top right corner of the button (Y=0 is the top of the page)
