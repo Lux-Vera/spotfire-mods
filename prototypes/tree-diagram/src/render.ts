@@ -288,6 +288,7 @@ export async function render(
             .text((d : any) => d.data.value)
             .attr("font-style", f.fontStyle)
             .attr("font-weight", f.fontWeight)
+            .attr("font-size", f.fontSize)
             .attr("font-family", f.fontFamily)
             .attr("fill", f.color)
             .style("fill-opacity", 1e-6)
@@ -339,6 +340,7 @@ export async function render(
           nodesExit.select("text")
           .style("fill-opacity", 1e-6)
           .style("font-size", 1e-6); //Size transition doesn't work atm :( ...
+
   
 
      }
@@ -420,11 +422,10 @@ export async function render(
 // function mark(d: Node ) {
 //     d3.event.ctrlKey ? d.mark("ToggleOrAdd") : d.mark();
 // }
-
 /**
  * Selects the elements that should be affected by the zoom
  */
-function handleZoom() {
+ function handleZoom() {
     d3.select("svg g:not(.settings-button)").attr("transform", d3.event.transform);
 }
 
