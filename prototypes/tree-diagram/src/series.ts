@@ -1,3 +1,4 @@
+import {Column, MarkingOperation } from "spotfire-api";
 import { RawData } from "./index";
 
 export enum NodeType {
@@ -21,6 +22,7 @@ export function buildNodes(
     let width = calcWidth();
     let children = node.children?.map(child => buildNodes(child, fontSize));
 
+
     let nodes : Nodes = {
         value: node.value,
         width: width,
@@ -29,6 +31,7 @@ export function buildNodes(
     }
 
     return nodes;
+
 
     function calcWidth() {
         document.getElementById("measureText")!.textContent = node.value;
