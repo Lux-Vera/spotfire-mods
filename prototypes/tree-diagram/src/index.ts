@@ -180,3 +180,4 @@ async function buildData(mod: Mod, dataView: DataView): Promise<Data> {
         nodes: buildNodes(data, fontSize)
     };
 }
+
