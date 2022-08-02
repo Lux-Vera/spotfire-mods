@@ -5,7 +5,6 @@ import { RenderState } from "./index";
 import { Nodes } from "./series";
 import { renderInfoBox } from "./infobox";
 import { clearAllMarkings } from "./helper";
-import { renderResetPositionButton, renderZoomInButton, renderZoomOutButton, ChartSize } from "./buttons";
 // type D3_SELECTION = d3.Selection<SVGGElement, unknown, HTMLElement, any>;
 // type D3_HIERARCHY_SELECTION = d3.Selection<SVGGElement | d3.EnterElement, d3.HierarchyPointNode<unknown> | d3.HierarchyPointLink<unknown>, SVGGElement, unknown>;
 /**
@@ -188,14 +187,6 @@ export async function render(
         let zoom = d3.zoom().on("zoom", handleZoom);
 
         initZoom(zoom);
-
-        /*
-        Draw zoom handling buttons
-        */
-        let chartSize: ChartSize = { width: width - 2 * padding, height: height };
-        renderResetPositionButton(svg, zoom, chartSize, tooltip, {X : 10, Y : 50, width: 20, height: 20});
-        renderZoomInButton(svg, zoom, tooltip, {X : 10, Y: 80, width: 20, height: 20});
-        renderZoomOutButton(svg, zoom, tooltip, {X : 10, Y : 110, width: 20, height: 20});
         /**
          * Transition nodes to new position
          */
