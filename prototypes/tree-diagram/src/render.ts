@@ -288,13 +288,13 @@ export async function render(
             .text((d : any) => d.data.value)
             .attr("font-style", f.fontStyle)
             .attr("font-weight", f.fontWeight)
-            .attr("font-size", f.fontSize)
             .attr("font-family", f.fontFamily)
             .attr("fill", f.color)
             .style("fill-opacity", 1e-6)
             .transition()
              .duration(cfg.duration)
-             .style("fill-opacity", 1);
+             .style("fill-opacity", 1)
+             .style("font-size", f.fontSize); //Size transition doesn't work atm :( ...
 
         // Toggle children on click.
         function toggleCollapse(d : any) {
@@ -338,7 +338,7 @@ export async function render(
            */
           nodesExit.select("text")
           .style("fill-opacity", 1e-6)
-          .style("font-size", 1e-6);
+          .style("font-size", 1e-6); //Size transition doesn't work atm :( ...
   
 
      }

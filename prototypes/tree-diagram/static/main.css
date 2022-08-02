@@ -14,6 +14,18 @@ body,
     overflow-y: auto;
 }
 
+#measureText {
+    width: fit-content;
+    position: absolute;
+    top: -100px;
+    opacity: 0;
+}
+#measureText,
+.node text {
+    fill: #313336;
+    font: 12px sans-serif;
+}
+
 body {
     font-family: "Open Sans", sans-serif;
     font-size: 11px;

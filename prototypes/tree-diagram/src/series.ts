@@ -1,4 +1,3 @@
-import {Column, MarkingOperation } from "spotfire-api";
 import { RawData } from "./index";
 
 export enum NodeType {
@@ -19,8 +18,8 @@ export function buildNodes(
     fontSize: number
 ) {
     let type = node.children ? NodeType.Internal : NodeType.Leaf;
-    let width = calcNodeWidth();
-    let children = node.children?.map((child, index) => buildNodes(child, fontSize));
+    let width = calcWidth();
+    let children = node.children?.map(child => buildNodes(child, fontSize));
 
     let nodes : Nodes = {
         value: node.value,
@@ -31,8 +30,8 @@ export function buildNodes(
 
     return nodes;
 
-    function calcNodeWidth() : number{
-        //TODO -- needs improvement
-        return fontSize*node.value.length*0.7;
+    function calcWidth() {
+        document.getElementById("measureText")!.textContent = node.value;
+        return document.getElementById("measureText")!.clientWidth+16;
     }
 }
