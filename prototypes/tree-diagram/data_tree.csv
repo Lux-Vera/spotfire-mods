@@ -1,0 +1,29 @@
+
+child, parent
+Analyse, 
+Biker data, Analyse
+Date, Biker data
+Rented bikes, Biker data
+Bikes out, Biker data
+, Date
+, Rended Bikes
+, Bikes out
+Weather data, Analyse
+Date, Weather data
+Temperature, Weather data
+Amount of rain, Weather data
+Bikes out, Weather data
+, Date
+, Temperature
+, Amount of rain
+, Bikes out
+Users, Analyse
+Name, Users
+Rentals, Users
+Age, Users
+, Name
+Date, Rentals
+Bike Id, Rentals
+, Date
+, Bike Id
+, Age
