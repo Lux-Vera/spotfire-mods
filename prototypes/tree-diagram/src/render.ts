@@ -4,6 +4,7 @@ import { FontInfo, Size, Tooltip } from "spotfire-api";
 import { RenderState } from "./index";
 import { Nodes } from "./series";
 import { renderInfoBox } from "./infobox";
+import { clearAllMarkings } from "./helper";
 // type D3_SELECTION = d3.Selection<SVGGElement, unknown, HTMLElement, any>;
 // type D3_HIERARCHY_SELECTION = d3.Selection<SVGGElement | d3.EnterElement, d3.HierarchyPointNode<unknown> | d3.HierarchyPointLink<unknown>, SVGGElement, unknown>;
 /**
@@ -36,20 +37,20 @@ const defaultConfig: Options = {
 
 export interface Data {
     clearMarking(): void;
-    nodes: Nodes
+    nodes: Nodes;
 }
 
 interface CustomLinkObject {
     source: {
-        x : number,
-        y : number,
-        nodeWidth : number
-    },
+        x: number;
+        y: number;
+        nodeWidth: number;
+    };
     target: {
-        x : number,
-        y : number,
-        nodeWidth : number
-    }
+        x: number;
+        y: number;
+        nodeWidth: number;
+    };
 }
 
 /**
@@ -68,7 +69,7 @@ export async function render(
     styling: {
         font: FontInfo;
     },
-    tooltip: Tooltip,
+    tooltip: Tooltip
 ) {
     if (state.preventRender) {
         // Early return if the state currently disallows rendering.
@@ -83,9 +84,8 @@ export async function render(
      * The constant that contains all the options related to the way the chart is drawn
      */
     const cfg: Options = {
-        ...defaultConfig,
+        ...defaultConfig
     };
-
 
     let nodesData = data.nodes;
 
@@ -101,31 +101,43 @@ export async function render(
      * Sets the viewBox to match windowSize
      */
     svg.attr("viewBox", `0, 0, ${width}, ${height}`);
-    svg.style("width", '100%');
-    svg.style("height", '100%');
+    svg.style("width", "100%");
+    svg.style("height", "100%");
     svg.selectAll("*").remove();
 
-    const svgChart = svg
-            .append("g")
-            .attr("transform", "translate(" + padding + "," + 0 + ")");
+    const svgChart = svg.append("g").attr("transform", "translate(" + padding + "," + 0 + ")");
 
     /**
      * Create tree layout
      */
-    let tree = d3.tree().size([height-(2*padding), width-(2*padding)]);
+    let tree = d3.tree().size([height - 2 * padding, width - 2 * padding]);
 
-    var diagonal = function link(d : CustomLinkObject) {
+    var diagonal = function link(d: CustomLinkObject) {
         const s = d.source;
         const t = d.target;
-        return "M" + (s.y+s.nodeWidth/2) + "," + s.x
-            + "C" + ((s.y+s.nodeWidth/2) + t.y) / 2 + "," + s.x
-            + " " + ((s.y+s.nodeWidth/2) + t.y) / 2 + "," + t.x
-            + " " + t.y + "," + t.x;
-      };
+        return (
+            "M" +
+            (s.y + s.nodeWidth / 2) +
+            "," +
+            s.x +
+            "C" +
+            (s.y + s.nodeWidth / 2 + t.y) / 2 +
+            "," +
+            s.x +
+            " " +
+            (s.y + s.nodeWidth / 2 + t.y) / 2 +
+            "," +
+            t.x +
+            " " +
+            t.y +
+            "," +
+            t.x
+        );
+    };
 
-    let root : any = d3.hierarchy(nodesData);
-    
-    root.x0 = (height-(2*padding)) / 2;
+    let root: any = d3.hierarchy(nodesData);
+
+    root.x0 = (height - 2 * padding) / 2;
     root.y0 = 0;
 
     /**
@@ -137,13 +149,12 @@ export async function render(
      * Draw the rectangular selection
      */
     //drawRectangularSelection();
-    
+
     /**
      * Draws a group.
      * @param source - source node that will be updated
      */
-    function update(source: any) {    
-
+    function update(source: any) {
         /**
          * Compute the new tree layout
          */
@@ -153,9 +164,10 @@ export async function render(
 
         /**
          * Update links
-         */    
-        const link = svgChart.selectAll(".link")
-        .data(links, function(d:any) { return d.target.id; });
+         */
+        const link = svgChart.selectAll(".link").data(links, function (d: any) {
+            return d.target.id;
+        });
 
         drawLinks(link.enter(), source);
         exitLinks(link.exit(), source);
@@ -163,155 +175,178 @@ export async function render(
         /**
          * Update nodes
          */
-        var node = svgChart.selectAll(".node")
-        .data(nodes, function(d:any) { return d.id || (d.id = ++i); });
+        var node = svgChart.selectAll(".node").data(nodes, function (d: any) {
+            return d.id || (d.id = ++i);
+        });
 
         drawNode(node.enter(), source);
 
         /**
          * Initialize zooming
          */
-        let zoom = d3.zoom()
-            .on('zoom', handleZoom);
-        
+        let zoom = d3.zoom().on("zoom", handleZoom);
+
         initZoom(zoom);
         /**
          * Transition nodes to new position
-         */ 
-        svgChart.selectAll(".node")
+         */
+        svgChart
+            .selectAll(".node")
             .transition()
             .duration(cfg.duration)
-            .attr("transform", function(d:any) { return "translate(" + d.y + "," + d.x + ")"; });
+            .attr("transform", function (d: any) {
+                return "translate(" + d.y + "," + d.x + ")";
+            });
 
         exitNodes(node.exit(), source);
 
         /**
          * Stash the old positions for transition.
          */
-        nodes.forEach(function(d:any) {
+        nodes.forEach(function (d: any) {
             d.x0 = d.x;
             d.y0 = d.y;
         });
     }
-    
-     /**
-      * Draws the links
-      * @param  - 
-      */
-      function drawLinks(link: d3.Selection<d3.EnterElement, d3.HierarchyPointLink<unknown>, SVGGElement, unknown>, source : any) {
+
+    /**
+     * Draws the links
+     * @param  -
+     */
+    function drawLinks(
+        link: d3.Selection<d3.EnterElement, d3.HierarchyPointLink<unknown>, SVGGElement, unknown>,
+        source: any
+    ) {
         /**
          * Create the branches
          */
-        link
-         .append("path")
-         .attr("class", "link")
-          .attr("d", d => {
-          return diagonal({
-            source:{
-                x: source.x0,
-                y: source.y0,
-                nodeWidth: source.data.width}, 
-            target: {
-                x: source.x0,
-                y: source.y0+source.data.width/2,
-                nodeWidth: source.data.width}
+        link.append("path")
+            .attr("class", "link")
+            .attr("d", (d) => {
+                return diagonal({
+                    source: {
+                        x: source.x0,
+                        y: source.y0,
+                        nodeWidth: source.data.width
+                    },
+                    target: {
+                        x: source.x0,
+                        y: source.y0 + source.data.width / 2,
+                        nodeWidth: source.data.width
+                    }
+                });
             });
-        });
 
-         /**
+        /**
          * Transition links to new position
-         */ 
-        svgChart.selectAll(".link").transition()
-        .duration(cfg.duration)
-        .attr("d", (d:any) => {
-            return diagonal({
-              source:{
-                  x: d.source.x,
-                  y: d.source.y,
-                  nodeWidth: d.source.data.width}, 
-              target: {
-                  x: d.target.x,
-                  y: d.target.y,
-                  nodeWidth: d.target.data.width}
-              });
-        });
+         */
+        svgChart
+            .selectAll(".link")
+            .transition()
+            .duration(cfg.duration)
+            .attr("d", (d: any) => {
+                return diagonal({
+                    source: {
+                        x: d.source.x,
+                        y: d.source.y,
+                        nodeWidth: d.source.data.width
+                    },
+                    target: {
+                        x: d.target.x,
+                        y: d.target.y,
+                        nodeWidth: d.target.data.width
+                    }
+                });
+            });
     }
 
     /**
-      * Removes the branches
-      * @param  - 
-      */
-    function exitLinks(link: d3.Selection<d3.BaseType, d3.HierarchyPointLink<unknown>, SVGGElement, unknown>, source : any) {
-         // Transition exiting nodes to the parent's new position.
-         link
-         .transition()
-           .duration(cfg.duration)
-           .attr("d", (d:any) => {
-		    return diagonal({
-                source:{
-                    x: source.x,
-                    y: source.y,
-                    nodeWidth: source.data.width
-                },
-                target: {
-                    x: source.x,
-                    y: source.y+source.data.width/2,
-                    nodeWidth: source.data.width
-                }
+     * Removes the branches
+     * @param  -
+     */
+    function exitLinks(
+        link: d3.Selection<d3.BaseType, d3.HierarchyPointLink<unknown>, SVGGElement, unknown>,
+        source: any
+    ) {
+        // Transition exiting nodes to the parent's new position.
+        link.transition()
+            .duration(cfg.duration)
+            .attr("d", (d: any) => {
+                return diagonal({
+                    source: {
+                        x: source.x,
+                        y: source.y,
+                        nodeWidth: source.data.width
+                    },
+                    target: {
+                        x: source.x,
+                        y: source.y + source.data.width / 2,
+                        nodeWidth: source.data.width
+                    }
                 });
-	        })
-           .remove();
+            })
+            .remove();
     }
 
     /**
      * Draws the nodes
-     * @param node - 
+     * @param node -
      */
-    function drawNode(node: d3.Selection<any, d3.HierarchyPointNode<unknown>, SVGGElement, unknown>, source : any) {
-
+    function drawNode(node: d3.Selection<any, d3.HierarchyPointNode<unknown>, SVGGElement, unknown>, source: any) {
+        let f = styling.font;
         /**
          * Enter new nodes
          */
-         let nodeEnter = node
-         .append("g")
-         .attr("class", (d : any) => "node " + d.data.type)
-         .attr("transform", d => "translate(" + (source.y0+source.data.width/2)  + "," + source.x0 + ")")
-         .on("dblclick", toggleCollapse);
+        let nodeEnter = node
+            .append("g")
+            .attr("class", (d: any) => "node " + d.data.type + " " + d.data.value.replace(/\s/g, "-"))
+            .attr("transform", (d) => "translate(" + (source.y0 + source.data.width / 2) + "," + source.x0 + ")")
+            .on("click", (d) => {
+                singleClick(d, update, tooltip, f);
+            })
+            .on("dblclick", toggleCollapse);
 
-        nodeEnter.append("rect")
-         .attr("rx", 10)
-         .transition()
-          .duration(cfg.duration)
-          .attr("y", -cfg.nodeHeight/2)
-          .attr("x", (d:any) => -d.data.width/2)
-          .attr("width", (d:any) => d.data.width )
-          .attr("height", cfg.nodeHeight);
-   
-        let f = styling.font;
+        nodeEnter
+            .append("rect")
+            .attr("rx", 10)
+            .transition()
+            .duration(cfg.duration)
+            .attr("y", -cfg.nodeHeight / 2)
+            .attr("class", (d: any) => d.data.value.replace(/\s/g, "-") + " node-rectangle")
+            .attr("x", (d: any) => -d.data.width / 2)
+            .attr("width", (d: any) => d.data.width)
+            .attr("height", cfg.nodeHeight);
 
-        nodeEnter.append("text")
+        nodeEnter
+            .append("text")
             .attr("dy", ".35em")
             .style("text-anchor", "middle")
-            .text((d : any) => d.data.value)
+            .text((d: any) => d.data.value)
             .attr("font-style", f.fontStyle)
             .attr("font-weight", f.fontWeight)
             .attr("font-size", f.fontSize)
             .attr("font-family", f.fontFamily)
+            .attr("class", (d: any) => "node-text " + d.data.value.replace(/\s/g, "-") + "-text")
             .attr("fill", f.color)
             .style("fill-opacity", 1e-6)
             .transition()
+<<<<<<< HEAD
              .duration(cfg.duration)
              .style("fill-opacity", 1)
              .style("font-size", f.fontSize); //Size transition doesn't work atm :( ...
+=======
+            .duration(cfg.duration)
+            .style("fill-opacity", 1);
+>>>>>>> 21cefc8 (Adding markings based on the updated datatype)
 
         // Toggle children on click.
-        function toggleCollapse(d : any) {
+        function toggleCollapse(d: any) {
             if (d.children) {
-            d._children = d.children;
-            d.children = null;
+                d._children = d.children;
+                d.children = null;
             } else {
-            d.children = d._children;
-            d._children = null;
+                d.children = d._children;
+                d._children = null;
             }
             update(d);
         }
@@ -319,11 +354,13 @@ export async function render(
 
     /**
      * Removes the nodes
-     * @param node - 
+     * @param node -
      */
-     function exitNodes(node: d3.Selection<d3.BaseType, d3.HierarchyPointNode<unknown>, SVGGElement, unknown>, source : any) {
-    
-         /**
+    function exitNodes(
+        node: d3.Selection<d3.BaseType, d3.HierarchyPointNode<unknown>, SVGGElement, unknown>,
+        source: any
+    ) {
+        /**
          * Exiting nodes move to parents new position
          */
           var nodesExit = node
@@ -350,7 +387,16 @@ export async function render(
 
   
 
-     }
+        /**
+         * Exiting nodes shrinks
+         */
+        nodesExit.select("rect").attr("y", 1e-6).attr("x", 1e-6).attr("width", 1e-6).attr("height", 1e-6);
+
+        /**
+         * Exiting nodes text fades
+         */
+        nodesExit.select("text").style("fill-opacity", 1e-6).style("font-size", 1e-6);
+    }
 
     /**
      * Draws rectangular selection
@@ -441,24 +487,31 @@ function initZoom(zoom: any) {
     d3.select("svg").call(zoom);
 }
 
-export function singleClick(d: d3.HierarchyPointNode<Node>, update: any, tooltip: Tooltip) {
+export function singleClick(d: any, update: any, tooltip: Tooltip, f: FontInfo) {
     d.data.marked = !d.data.marked || false;
     // The colors should be generated earilier from the API
-
+    console.log("f.color: ", f.color);
     // Remove previous markings
     d3.selectAll(".node-rectangle").style("stroke", "grey").style("fill", "white");
-    d3.selectAll(".node-text").style("fill", "grey");
+    console.log(d3.selectAll(".node-text"));
+    d3.selectAll(".node-text")
+        .style("stroke", f.color)
+        .style("font-weight", f.fontWeight)
+        .style("font-size", f.fontSize);
     d3.selectAll(".info-box").remove();
 
+    // Change marking of all other nodes
+    clearAllMarkings(d);
+
     if (d.data.marked) {
-        renderInfoBox(d, update, tooltip);
+        //renderInfoBox(d, update, tooltip);
     }
 
-    d3.selectAll(`.${d.data.name}-${d.data.type}`)
+    d3.selectAll(`.${d.data.value.replace(/\s/g, "-")}`)
         .style("stroke", d.data.marked ? "#3050ef" : "grey")
         .style("fill", d.data.marked ? "#ebefff" : "white");
 
-    d3.selectAll(`.${d.data.name}-${d.data.type}-text`).style("fill", d.data.marked ? "#3050ef" : "grey");
+    d3.selectAll(`.${d.data.value.replace(/\s/g, "-")}-text`).style("stroke", d.data.marked ? "#3050ef" : "grey");
     // Call internal api here
     update(d);
 }
