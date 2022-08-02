@@ -339,10 +339,14 @@ export async function render(
             .attr("fill", f.color)
             .style("fill-opacity", 1e-6)
             .transition()
+<<<<<<< HEAD
              .duration(cfg.duration)
              .style("fill-opacity", 1)
              .style("font-size", f.fontSize); //Size transition doesn't work atm :( ...
-
+=======
+            .duration(cfg.duration)
+            .style("fill-opacity", 1);
+>>>>>>> 21cefc8 (Adding markings based on the updated datatype)
 
         // Toggle children on click.
         function toggleCollapse(d: any) {
