@@ -1,29 +1,17 @@
-
-child, parent
-Analyse, 
-Biker data, Analyse
-Date, Biker data
-Rented bikes, Biker data
-Bikes out, Biker data
-, Date
-, Rended Bikes
-, Bikes out
-Weather data, Analyse
-Date, Weather data
-Temperature, Weather data
-Amount of rain, Weather data
-Bikes out, Weather data
-, Date
-, Temperature
-, Amount of rain
-, Bikes out
-Users, Analyse
-Name, Users
-Rentals, Users
-Age, Users
-, Name
-Date, Rentals
-Bike Id, Rentals
-, Date
-, Bike Id
-, Age
+Node, Id, ParentId
+Analyse, 1, 0
+Biker data, 2, 1
+Weather data, 3, 1
+Users, 4, 1
+Date, 5, 2
+Rented bikes, 6, 2
+Bikes out, 7, 2
+Date, 8, 3
+Temperature, 9, 3
+Amount of rain, 10, 3
+Wind strength, 11, 3
+Name, 12, 4
+Rentals, 13, 4
+Age, 14, 4
+Date, 15, 13
+Bike id, 16, 13

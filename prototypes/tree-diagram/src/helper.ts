@@ -55,3 +55,35 @@ import { Nodes } from "./series";
         }
     })
 }
+
+
+// Retrieves all children of a subtree
+// and puts them into a list
+export function treeToList(tree : any) {
+    let children : any = tree.children
+    let collectedNodes : any = [];
+    while (children.length > 0) {
+        children.forEach((child : any) => {
+            if (child.children !== undefined) {
+                children = [...children, ...child.children]
+            }
+            collectedNodes.push(child);
+            children.shift();
+        })
+    }
+    return children;
+}
+
+export function createTree(data : any, fontSize : any) {
+    const hashTable = Object.create(null);
+    data.forEach((d : any) => {
+        //Create a hashtable with the ID as keys
+        hashTable[d.id] = {mark : d.mark, value: d.value, ID: d.id, width: fontSize*d.value.length*0.7, parentID: d.parentId, children: [] };
+    });
+    // Take the root of the tree
+    let tree : any = hashTable[data[0].id]
+    data.slice(1,).forEach((d : any) => {
+        hashTable[d.parentId].children.push(hashTable[d.id]); 
+    });
+    return tree;
+}

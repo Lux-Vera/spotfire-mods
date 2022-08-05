@@ -6,7 +6,28 @@
     "icon": "icon.svg",
     "properties": [],
     "dataViewDefinition": {
-        "tooltip": { "enabled": true }
+        "colorAxis": {
+            "mode": "categorical",
+            "dropTarget": {
+                "icon": "Color",
+                "description": "Color by {0}"
+            }
+        },
+        "tooltip": { "enabled": true },
+        "axes": [
+            {
+                "name": "Node",
+                "mode": "categorical"
+            },
+            {
+                "name": "Id",
+                "mode": "categorical"
+            },
+            {
+                "name": "ParentId",
+                "mode": "categorical"
+            }
+        ]
     },
     "files": [
         "index.html",

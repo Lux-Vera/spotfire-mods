@@ -1,6 +1,7 @@
 import { Data, render } from "./render";
-import { buildNodes} from "./series";
-import { DataView, Mod } from "spotfire-api";
+import { buildNodes, Nodes} from "./series";
+import { DataTable, DataView, Mod } from "spotfire-api";
+import { treeToList, createTree } from "./helper";
 // var events = require("events");
 
 const Spotfire = window.Spotfire;
@@ -10,41 +11,6 @@ const DEBUG = true;
     value: string,
     children?: RawData[]
  }
-
- var tempData : RawData = {
-    value: "Analyse",
-    children: [
-        {
-            value: "Biker data",
-            children: [
-                { value: "Date" },
-                { value: "Rented bikes" },
-                { value: "Bikes out" }
-            ]
-        },
-        {
-            value: "Weather data",
-            children: [ 
-                { value: "Date"},
-                { value: "Temperature"},
-                { value: "Amount of rain"},
-                { value: "Wind strenght"}
-            ]
-        },
-        {
-            value: "Users",
-            children: [
-                { value: "Name" },
-                { value: "Rentals",
-                children: [
-                    {value: "Date"},
-                    {value: "Bike id"}
-                ]},
-                { value: "Age" }
-            ]
-        }
-    ]
- };
 
 export interface RenderState {
     preventRender: boolean;
@@ -85,11 +51,11 @@ Spotfire.initialize(async (mod) => {
     async function onChange(
         dataView: DataView,
         windowSize: Spotfire.Size,
+        dataTable: DataTable
         // Add properties ...
         // curveType: ModProperty<string>,
     ) {
         let data = await buildData(mod, dataView);
-
         await render(
             state,
             data,
@@ -167,16 +133,30 @@ export function generalErrorHandler<T extends (dataView: Spotfire.DataView, ...a
  * @param mod The Mod API object
  * @param dataView The mod's DataView
  */
-async function buildData(mod: Mod, dataView: DataView): Promise<Data> {
-
-    // const dataTable = (await mod.visualization.mainTable());
-    // const columns =  await dataTable.columns(); // Gets the data column names!
+async function buildData(mod: Mod, dataView: DataView) {
     const fontSize = mod.getRenderContext().styling.general.font.fontSize;
-    const data = tempData;
-
+    let rawTreeData = await getData(dataView);
     return {
         clearMarking: dataView.clearMarking,
-        //nodes: buildNodeSeries(columns, fontSize)
-        nodes: buildNodes(data, fontSize)
+        nodes : createTree(rawTreeData, fontSize)
     };
+}
+
+async function getData(dataView : DataView) {
+    const rows = await dataView.allRows();
+    let objects : any = [];
+    rows?.forEach(row => {
+        objects.push({
+            marked : row.isMarked(),
+            mark : () => {
+                row.mark("Toggle")
+            },
+            value : row.categorical("Node").formattedValue(),
+            id : row.categorical("Id").formattedValue(),
+            parentId : row.categorical("ParentId").formattedValue()
+        })
+    })
+    objects.sort((a : any, b : any) => (a.id - b.id))
+    return objects
+
 }
