@@ -224,13 +224,21 @@ export async function render(
             d.y0 = d.y;
         });
 
+        let skip = false;
         nodes.forEach((node: any) => {
-            let skip = false;
             if (node.data.marked && !skip) {
                 renderInfoBox(node, tooltip);
                 skip = true;
             }
         });
+
+        /**
+         * If no nodes are marked remove the infobox that
+         * could have been rendered previously.
+         */
+        if (!skip) {
+            d3.selectAll(".info-box").remove();
+        }
     }
 
     /**
