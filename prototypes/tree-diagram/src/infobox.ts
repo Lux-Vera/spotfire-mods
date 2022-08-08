@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import { Node, singleClick } from "./render";
+import { Node } from "./render";
 import { getAllNodes, compareNodes } from "./helper";
 import { Tooltip, FontInfo } from "spotfire-api";
 
@@ -27,7 +27,7 @@ function getReferencedBy(d: d3.HierarchyPointNode<Node>): Node[] {
     return referencedBy;
 }
 
-export function renderInfoBox(d: d3.HierarchyPointNode<Node>, update: any, tooltip: Tooltip, f: FontInfo) {
+export function renderInfoBox(d: d3.HierarchyPointNode<Node>, tooltip: Tooltip) {
     d3.selectAll(".info-box").remove();
     let container = d3.select("#mod-container");
     container
@@ -52,15 +52,15 @@ export function renderInfoBox(d: d3.HierarchyPointNode<Node>, update: any, toolt
 
     let referencedBy = getReferencedBy(d);
     if (referencedBy.length !== 0) {
-        generateReferencesByContainer(infoBox, referencedBy, d, update, tooltip, f);
+        generateReferencesByContainer(infoBox, referencedBy, d);
     }
 
     let references = getReferences(d);
     if (references.length !== 0) {
-        generateReferencesContainer(infoBox, references, d, update, tooltip, f);
+        generateReferencesContainer(infoBox, references, d);
     }
 
-    generateCallSite(infoBox, d, update, tooltip, f);
+    generateCallSite(infoBox, d);
 }
 
 function generateHeader(
@@ -121,10 +121,7 @@ function generateHideButton(container: d3.Selection<d3.BaseType, unknown, HTMLEl
 function generateReferencesByContainer(
     container: d3.Selection<d3.BaseType, unknown, HTMLElement, any>,
     references: Node[],
-    d: d3.HierarchyPointNode<Node>,
-    update: any,
-    tooltip: Tooltip,
-    f: FontInfo
+    d: d3.HierarchyPointNode<Node>
 ) {
     container
         .append("div")
@@ -152,9 +149,9 @@ function generateReferencesByContainer(
             .style("margin-left", "20px")
             .on("click", () => {
                 let nodes = getAllNodes(d);
-                nodes.forEach((node) => {
+                nodes.forEach((node : any) => {
                     if (node.data.value == reference.value && node.data.type == reference.type) {
-                        singleClick(node, update, tooltip, f);
+                        node.data.mark(node.data);
                     }
                 });
             });
@@ -164,10 +161,7 @@ function generateReferencesByContainer(
 function generateReferencesContainer(
     container: d3.Selection<d3.BaseType, unknown, HTMLElement, any>,
     references: Node[],
-    d: d3.HierarchyPointNode<Node>,
-    update: any,
-    tooltip: Tooltip,
-    f: FontInfo
+    d: d3.HierarchyPointNode<Node>
 ) {
     container
         .append("div")
@@ -193,9 +187,9 @@ function generateReferencesContainer(
             .style("margin-left", "20px")
             .on("click", () => {
                 let nodes = getAllNodes(d);
-                nodes.forEach((node) => {
+                nodes.forEach((node : any) => {
                     if (node.data.value == reference.value && node.data.type == reference.type) {
-                        singleClick(node, update, tooltip, f);
+                        node.data.mark(node.data);
                     }
                 });
             });
@@ -204,10 +198,7 @@ function generateReferencesContainer(
 
 function generateCallSite(
     container: d3.Selection<d3.BaseType, unknown, HTMLElement, any>,
-    d: d3.HierarchyPointNode<Node>,
-    update: any,
-    tooltip: Tooltip,
-    f: FontInfo
+    d: d3.HierarchyPointNode<Node>
 ) {
     let sites = getCallSites(d);
 
@@ -236,7 +227,7 @@ function generateCallSite(
                     .style("color", "#3050ef")
                     .style("font-size", "16x")
                     .on("click", () => {
-                        singleClick(site, update, tooltip, f);
+                        site.data.mark(site.data);
                     });
             } else {
                 li.append("span")
@@ -244,7 +235,7 @@ function generateCallSite(
                     .style("color", "#3050ef")
                     .style("font-size", "16px")
                     .on("click", () => {
-                        singleClick(site, update, tooltip, f);
+                        site.data.mark(site.data);
                     });
             }
         });
