@@ -356,15 +356,11 @@ export async function render(
          * Enter new nodes
          */
 
-        // timeout: deals with the rerendering to allow both single- and dubbleclick.
-        let timeout : any = null;
-
         let nodeEnter = node
             .append("g")
             .attr("class", (d: any) => "node " + d.data.type + " " + d.data.value.replace(/\s/g, "-"))
             .attr("transform", () => "translate(" + (source.y0 + source.data.width / 2) + "," + source.x0 + ")")
             .on("click", (d) => {
-                clearTimeout(timeout);
                 if (d3.event.ctrlKey) {
                     toggleCollapse(d);
                 } else {
@@ -384,6 +380,7 @@ export async function render(
             .attr("width", (d: any) => d.data.width)
             .attr("height", cfg.nodeHeight)
             .style("stroke", (d : any) => d.data.marked ? "#3050ef" : "grey")
+            .style("stroke-dasharray", (d : any) => (d.data.children.length == 0) ? ("2, 3") : "0")
             .style("fill", (d : any) => d.data.marked ? "#ebefff" : "white");
 
             nodeEnter
@@ -401,7 +398,7 @@ export async function render(
                 .style("fill-opacity", 1e-6)
                 .transition()
                 .duration(cfg.duration)
-                .style("fill-opacity", 1);//.style("stroke", (d : any) => d.data.marked ? "#3050ef" : "grey");
+                .style("fill-opacity", 1);
         } else {
             nodeEnter
             .append("rect")
@@ -412,6 +409,7 @@ export async function render(
             .attr("width", (d: any) => d.data.width)
             .attr("height", cfg.nodeHeight)
             .style("stroke", (d : any) => d.data.marked ? "#3050ef" : "grey")
+            .style("stroke-dasharray", (d : any) => (d.data.children.length == 0) ? ("2, 3") : "0")
             .style("fill", (d : any) => d.data.marked ? "#ebefff" : "white");
 
             nodeEnter
