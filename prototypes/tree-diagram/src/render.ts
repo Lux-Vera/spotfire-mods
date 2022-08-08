@@ -144,7 +144,7 @@ export async function render(
     /**
      * Update the graph
      */
-    update(root );
+    update(root, false);
 
     /**
      * Draw the rectangular selection
@@ -154,8 +154,9 @@ export async function render(
     /**
      * Draws a group.
      * @param source - source node that will be updated
+     * @param transition - determines if transitions are active to make markings look better.
      */
-    function update(source: any) {
+    function update(source: any, transition : boolean) {
         /**
          * Compute the new tree layout
          */
@@ -170,8 +171,8 @@ export async function render(
             return d.target.id;
         });
 
-        drawLinks(link.enter(), source);
-        exitLinks(link.exit(), source);
+        drawLinks(link.enter(), source, transition);
+        exitLinks(link.exit(), source, transition);
 
         /**
          * Update nodes
@@ -180,7 +181,7 @@ export async function render(
             return d.id || (d.id = ++i);
         });
 
-        drawNode(node.enter(), source);
+        drawNode(node.enter(), source, transition);
 
         /**
          * Initialize zooming
@@ -199,13 +200,22 @@ export async function render(
         /**
          * Transition nodes to new position
          */
-         svgChart
-         .selectAll(".node")
-         .transition()
-         .duration(cfg.duration)
-         .attr("transform", function (d: any) {
-             return "translate(" + d.y + "," + d.x + ")";
-         });
+        if (transition) {
+            svgChart
+            .selectAll(".node")
+            .transition()
+            .duration(cfg.duration)
+            .attr("transform", function (d: any) {
+                return "translate(" + d.y + "," + d.x + ")";
+            });
+        } else {
+            svgChart
+            .selectAll(".node")
+            .attr("transform", function (d: any) {
+                return "translate(" + d.y + "," + d.x + ")";
+            });
+        }
+         
 
         exitNodes(node.exit(), source);
 
@@ -224,7 +234,8 @@ export async function render(
      */
     function drawLinks(
         link: d3.Selection<d3.EnterElement, d3.HierarchyPointLink<unknown>, SVGGElement, unknown>,
-        source: any
+        source: any,
+        transition : boolean
     ) {
         /**
          * Create the branches
@@ -249,7 +260,8 @@ export async function render(
         /**
          * Transition links to new position
          */
-        svgChart
+        if (transition) {
+            svgChart
             .selectAll(".link")
             .transition()
             .duration(cfg.duration)
@@ -267,6 +279,25 @@ export async function render(
                     }
                 });
             });
+        } else {
+            svgChart
+            .selectAll(".link")
+            .attr("d", (d: any) => {
+                return diagonal({
+                    source: {
+                        x: d.source.x,
+                        y: d.source.y,
+                        nodeWidth: d.source.data.width
+                    },
+                    target: {
+                        x: d.target.x,
+                        y: d.target.y,
+                        nodeWidth: d.target.data.width
+                    }
+                });
+            });
+        }
+        
     }
 
     /**
@@ -275,48 +306,74 @@ export async function render(
      */
     function exitLinks(
         link: d3.Selection<d3.BaseType, d3.HierarchyPointLink<unknown>, SVGGElement, unknown>,
-        source: any
+        source: any,
+        transition : boolean
     ) {
         // Transition exiting nodes to the parent's new position.
-        link.transition()
-            .duration(cfg.duration)
-            .attr("d", (d: any) => {
-                return diagonal({
-                    source: {
-                        x: source.x,
-                        y: source.y,
-                        nodeWidth: source.data.width
-                    },
-                    target: {
-                        x: source.x,
-                        y: source.y + source.data.width / 2,
-                        nodeWidth: source.data.width
-                    }
-                });
-            })
-            .remove();
+        if (transition) {
+            link.transition()
+                .duration(cfg.duration)
+                .attr("d", (d: any) => {
+                    return diagonal({
+                        source: {
+                            x: source.x,
+                            y: source.y,
+                            nodeWidth: source.data.width
+                        },
+                        target: {
+                            x: source.x,
+                            y: source.y + source.data.width / 2,
+                            nodeWidth: source.data.width
+                        }
+                    });
+                })
+                .remove();
+        } else {
+            link.attr("d", (d: any) => {
+                    return diagonal({
+                        source: {
+                            x: source.x,
+                            y: source.y,
+                            nodeWidth: source.data.width
+                        },
+                        target: {
+                            x: source.x,
+                            y: source.y + source.data.width / 2,
+                            nodeWidth: source.data.width
+                        }
+                    });
+                })
+        }
     }
 
     /**
      * Draws the nodes
      * @param node -
      */
-    function drawNode(node: d3.Selection<any, d3.HierarchyPointNode<unknown>, SVGGElement, unknown>, source: any) {
+    function drawNode(node: d3.Selection<any, d3.HierarchyPointNode<unknown>, SVGGElement, unknown>, source: any, transition : boolean) {
         let f = styling.font;
         /**
          * Enter new nodes
          */
+
+        // timeout: deals with the rerendering to allow both single- and dubbleclick.
+        let timeout : any = null;
 
         let nodeEnter = node
             .append("g")
             .attr("class", (d: any) => "node " + d.data.type + " " + d.data.value.replace(/\s/g, "-"))
             .attr("transform", () => "translate(" + (source.y0 + source.data.width / 2) + "," + source.x0 + ")")
             .on("click", (d) => {
-                singleClick(d, update, tooltip, f);
+                clearTimeout(timeout);
+                if (d3.event.ctrlKey) {
+                    toggleCollapse(d);
+                } else {
+                    markNodes(d, update, tooltip, f);
+                }
             })
-            .on("dblclick", toggleCollapse);
 
-        nodeEnter
+        if (transition) {
+            nodeEnter
             .append("rect")
             .attr("rx", 10)
             .transition()
@@ -329,22 +386,50 @@ export async function render(
             .style("stroke", (d : any) => d.data.marked ? "#3050ef" : "grey")
             .style("fill", (d : any) => d.data.marked ? "#ebefff" : "white");
 
-        nodeEnter
-            .append("text")
-            .attr("dy", ".35em")
-            .style("text-anchor", "middle")
-            .text((d: any) => d.data.value)
-            .attr("font-style", f.fontStyle)
-            .attr("font-weight", f.fontWeight)
-            .attr("font-size", f.fontSize)
-            .attr("font-family", f.fontFamily)
-            .attr("class", (d: any) => "node-text " + d.data.value.replace(/\s/g, "-") + "-text")
-            //.attr("fill", f.color)
-            .attr("fill", (d : any) => d.data.marked ? "#3050ef" : "grey")
-            .style("fill-opacity", 1e-6)
-            .transition()
-            .duration(cfg.duration)
-            .style("fill-opacity", 1);//.style("stroke", (d : any) => d.data.marked ? "#3050ef" : "grey");
+            nodeEnter
+                .append("text")
+                .attr("dy", ".35em")
+                .style("text-anchor", "middle")
+                .text((d: any) => d.data.value)
+                .attr("font-style", f.fontStyle)
+                .attr("font-weight", f.fontWeight)
+                .attr("font-size", f.fontSize)
+                .attr("font-family", f.fontFamily)
+                .attr("class", (d: any) => "node-text " + d.data.value.replace(/\s/g, "-") + "-text")
+                //.attr("fill", f.color)
+                .attr("fill", (d : any) => d.data.marked ? "#3050ef" : "grey")
+                .style("fill-opacity", 1e-6)
+                .transition()
+                .duration(cfg.duration)
+                .style("fill-opacity", 1);//.style("stroke", (d : any) => d.data.marked ? "#3050ef" : "grey");
+        } else {
+            nodeEnter
+            .append("rect")
+            .attr("rx", 10)
+            .attr("y", -cfg.nodeHeight / 2)
+            .attr("class", (d: any) => d.data.value.replace(/\s/g, "-") + " node-rectangle")
+            .attr("x", (d: any) => -d.data.width / 2)
+            .attr("width", (d: any) => d.data.width)
+            .attr("height", cfg.nodeHeight)
+            .style("stroke", (d : any) => d.data.marked ? "#3050ef" : "grey")
+            .style("fill", (d : any) => d.data.marked ? "#ebefff" : "white");
+
+            nodeEnter
+                .append("text")
+                .attr("dy", ".35em")
+                .style("text-anchor", "middle")
+                .text((d: any) => d.data.value)
+                .attr("font-style", f.fontStyle)
+                .attr("font-weight", f.fontWeight)
+                .attr("font-size", f.fontSize)
+                .attr("font-family", f.fontFamily)
+                .attr("class", (d: any) => "node-text " + d.data.value.replace(/\s/g, "-") + "-text")
+                //.attr("fill", f.color)
+                .attr("fill", (d : any) => d.data.marked ? "#3050ef" : "grey")
+                .style("fill-opacity", 1e-6)
+                .style("fill-opacity", 1);//.style("stroke", (d : any) => d.data.marked ? "#3050ef" : "grey");
+        }
+        
             
 
         // Toggle children on click.
@@ -356,7 +441,7 @@ export async function render(
                 d.children = d._children;
                 d._children = null;
             }
-            update(d);
+            update(d, true);
         }
     }
 
@@ -479,12 +564,11 @@ function initZoom(zoom: any) {
     d3.select("svg").call(zoom).on("dblclick.zoom", null);
 }
 
-export function singleClick(d: any, update: any, tooltip: Tooltip, f: FontInfo) {
+export function markNodes(d: any, update: any, tooltip: Tooltip, f: FontInfo) {
     // Change marking of all other nodes
     d.data.mark(d.data);
-    console.log(d.data.marked);
     if (!d.data.marked) {
         renderInfoBox(d, update, tooltip, f);
     }
-    update(d);
+    update(d, false);
 }

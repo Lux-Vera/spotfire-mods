@@ -106,13 +106,14 @@ function generateHideButton(container: d3.Selection<d3.BaseType, unknown, HTMLEl
         .style("height", "2px")
         .style("background-color", "black")
         .style("margin-top", "7px")
-        .style("margin-left", "2px")
+        .style("position", "absolute")
+        .style("margin-right", "2px")
         .style("transform", "rotate(45deg)")
         .append("div")
         .style("width", "12px")
         .style("height", "2px")
         .style("background-color", "black")
-        .style("margin-top", "4px")
+        .style("margin-top", "7px")
         .style("margin-left", "2px")
         .style("transform", "rotate(90deg)");
 }
