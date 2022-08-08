@@ -1,7 +1,7 @@
 import { Data, render } from "./render";
 import { buildNodes, Nodes} from "./series";
 import { DataTable, DataView, Mod, DataViewRow } from "spotfire-api";
-import { treeToList, createTree } from "./helper";
+import { createTree } from "./helper";
 // var events = require("events");
 
 const Spotfire = window.Spotfire;
@@ -142,7 +142,7 @@ async function buildData(mod: Mod, dataView: DataView) {
     };
 }
 
-async function getData(dataView : DataView) {
+async function getData(dataView : DataView) : Promise<Nodes[]> {
     const rows = await dataView.allRows();
     let objects : any = [];
     rows?.forEach(row => {

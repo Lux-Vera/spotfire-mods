@@ -315,7 +315,7 @@ export async function render(
         if (transition) {
             link.transition()
                 .duration(cfg.duration)
-                .attr("d", (d: any) => {
+                .attr("d", () => {
                     return diagonal({
                         source: {
                             x: source.x,
@@ -331,7 +331,7 @@ export async function render(
                 })
                 .remove();
         } else {
-            link.attr("d", (d: any) => {
+            link.attr("d", () => {
                 return diagonal({
                     source: {
                         x: source.x,
@@ -371,7 +371,6 @@ export async function render(
                     toggleCollapse(d);
                 } else {
                     d.data.mark(d.data);
-                    //markNodes(d, update, tooltip, f);
                 }
             });
 
@@ -436,7 +435,7 @@ export async function render(
         }
 
         // Toggle children on click.
-        function toggleCollapse(d: any) {
+        function toggleCollapse(d: Nodes) {
             if (d.children) {
                 d._children = d.children;
                 d.children = null;
@@ -551,10 +550,6 @@ export async function render(
         });
     }
 }
-
-// function mark(d: Node ) {
-//     d3.event.ctrlKey ? d.mark("ToggleOrAdd") : d.mark();
-// }
 
 function handleZoom() {
     d3.select("svg g:not(.settings-button)").attr("transform", d3.event.transform);

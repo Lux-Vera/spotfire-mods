@@ -1,24 +1,25 @@
 import * as d3 from "d3";
 import { Node } from "./render";
+import { Nodes } from "./series";
 import { getAllNodes, compareNodes } from "./helper";
-import { Tooltip, FontInfo } from "spotfire-api";
+import { Tooltip } from "spotfire-api";
 
-function getReferences(d: d3.HierarchyPointNode<Node>): Node[] {
+function getReferences(d: d3.HierarchyPointNode<Nodes>): Nodes[] {
     let nodes = getAllNodes(d);
-    let references: Node[] = [];
+    let references: Nodes[] = [];
     nodes.forEach((node) => {
-        if (compareNodes(d, node) && node.data.children !== undefined) {
+        if (compareNodes(d, node) && node.data.children !== undefined && node.data.children !== null) {
             references.push(...node.data.children);
         }
     });
     return references;
 }
 
-function getReferencedBy(d: d3.HierarchyPointNode<Node>): Node[] {
+function getReferencedBy(d: d3.HierarchyPointNode<Nodes>): Nodes[] {
     let nodes = getAllNodes(d);
-    let referencedBy: Node[] = [];
+    let referencedBy: Nodes[] = [];
     nodes.forEach((node) => {
-        if (node.data.children !== undefined) {
+        if ((node.data.children !== undefined) && (node.data.children !== null)) {
             if (node.data.children?.filter((n) => n.value === d.data.value).length > 0) {
                 referencedBy.push(node.data);
             }
@@ -27,7 +28,7 @@ function getReferencedBy(d: d3.HierarchyPointNode<Node>): Node[] {
     return referencedBy;
 }
 
-export function renderInfoBox(d: d3.HierarchyPointNode<Node>, tooltip: Tooltip) {
+export function renderInfoBox(d: d3.HierarchyPointNode<Nodes>, tooltip: Tooltip) {
     d3.selectAll(".info-box").remove();
     let container = d3.select("#mod-container");
     container
@@ -65,11 +66,11 @@ export function renderInfoBox(d: d3.HierarchyPointNode<Node>, tooltip: Tooltip) 
 
 function generateHeader(
     container: d3.Selection<d3.BaseType, unknown, HTMLElement, any>,
-    d: d3.HierarchyPointNode<Node>
+    d: d3.HierarchyPointNode<Nodes>
 ) {
     container
         .append("h1")
-        .text(d.data.name)
+        .text(d.data.value)
         .style("font-size", "3em")
         .style("font-weight", "bold")
         .style("margin-left", "10px")
@@ -120,8 +121,8 @@ function generateHideButton(container: d3.Selection<d3.BaseType, unknown, HTMLEl
 
 function generateReferencesByContainer(
     container: d3.Selection<d3.BaseType, unknown, HTMLElement, any>,
-    references: Node[],
-    d: d3.HierarchyPointNode<Node>
+    references: Nodes[],
+    d: d3.HierarchyPointNode<Nodes>
 ) {
     container
         .append("div")
@@ -137,7 +138,7 @@ function generateReferencesByContainer(
         .style("color", "#000000");
 
     container.append("ul");
-    references.map((reference) => {
+    references.map((reference : Nodes) => {
         container
             .append("li")
             .style("list-style-type", "none")
@@ -148,8 +149,8 @@ function generateReferencesByContainer(
             .style("text-decoration", "underline")
             .style("margin-left", "20px")
             .on("click", () => {
-                let nodes = getAllNodes(d);
-                nodes.forEach((node : any) => {
+                let nodes : d3.HierarchyPointNode<Nodes>[] = getAllNodes(d);
+                nodes.forEach((node : d3.HierarchyPointNode<Nodes>) => {
                     if (node.data.value == reference.value && node.data.type == reference.type) {
                         node.data.mark(node.data);
                     }
@@ -160,8 +161,8 @@ function generateReferencesByContainer(
 
 function generateReferencesContainer(
     container: d3.Selection<d3.BaseType, unknown, HTMLElement, any>,
-    references: Node[],
-    d: d3.HierarchyPointNode<Node>
+    references: Nodes[],
+    d: d3.HierarchyPointNode<Nodes>
 ) {
     container
         .append("div")
@@ -175,7 +176,7 @@ function generateReferencesContainer(
         .style("color", "#000000");
 
     container.append("ul");
-    references.map((reference) => {
+    references.map((reference : Nodes) => {
         container
             .append("li")
             .style("font-size", "16px")
@@ -186,8 +187,8 @@ function generateReferencesContainer(
             .style("text-decoration", "underline")
             .style("margin-left", "20px")
             .on("click", () => {
-                let nodes = getAllNodes(d);
-                nodes.forEach((node : any) => {
+                let nodes : d3.HierarchyPointNode<Nodes>[] = getAllNodes(d);
+                nodes.forEach((node : d3.HierarchyPointNode<Nodes>) => {
                     if (node.data.value == reference.value && node.data.type == reference.type) {
                         node.data.mark(node.data);
                     }
@@ -198,7 +199,7 @@ function generateReferencesContainer(
 
 function generateCallSite(
     container: d3.Selection<d3.BaseType, unknown, HTMLElement, any>,
-    d: d3.HierarchyPointNode<Node>
+    d: d3.HierarchyPointNode<Nodes>
 ) {
     let sites = getCallSites(d);
 
