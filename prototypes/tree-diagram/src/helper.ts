@@ -29,14 +29,12 @@ import { Nodes } from "./series";
  export function compareNodes(node1: d3.HierarchyPointNode<Nodes>, node2: d3.HierarchyPointNode<Nodes>): boolean {
     if (
         node1.data.value == undefined ||
-        node1.data.type == undefined ||
-        node2.data.value == undefined ||
-        node2.data.type == undefined
+        node2.data.value == undefined
     ) {
         return false;
     }
 
-    if (node1.data.value == node2.data.value && node1.data.type == node2.data.type) {
+    if (node1.data.value == node2.data.value) {
         return true;
     } else {
         return false;

@@ -483,7 +483,7 @@ export function singleClick(d: any, update: any, tooltip: Tooltip, f: FontInfo) 
     // Change marking of all other nodes
     d.data.mark(d.data);
     console.log(d.data.marked);
-    if (d.data.marked) {
+    if (!d.data.marked) {
         renderInfoBox(d, update, tooltip, f);
     }
     update(d);
