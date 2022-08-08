@@ -144,7 +144,7 @@ export async function render(
     /**
      * Update the graph
      */
-    update(root);
+    update(root );
 
     /**
      * Draw the rectangular selection
@@ -199,13 +199,13 @@ export async function render(
         /**
          * Transition nodes to new position
          */
-        svgChart
-            .selectAll(".node")
-            .transition()
-            .duration(cfg.duration)
-            .attr("transform", function (d: any) {
-                return "translate(" + d.y + "," + d.x + ")";
-            });
+         svgChart
+         .selectAll(".node")
+         .transition()
+         .duration(cfg.duration)
+         .attr("transform", function (d: any) {
+             return "translate(" + d.y + "," + d.x + ")";
+         });
 
         exitNodes(node.exit(), source);
 
@@ -306,10 +306,11 @@ export async function render(
         /**
          * Enter new nodes
          */
+
         let nodeEnter = node
             .append("g")
             .attr("class", (d: any) => "node " + d.data.type + " " + d.data.value.replace(/\s/g, "-"))
-            .attr("transform", (d) => "translate(" + (source.y0 + source.data.width / 2) + "," + source.x0 + ")")
+            .attr("transform", () => "translate(" + (source.y0 + source.data.width / 2) + "," + source.x0 + ")")
             .on("click", (d) => {
                 singleClick(d, update, tooltip, f);
             })
@@ -324,7 +325,9 @@ export async function render(
             .attr("class", (d: any) => d.data.value.replace(/\s/g, "-") + " node-rectangle")
             .attr("x", (d: any) => -d.data.width / 2)
             .attr("width", (d: any) => d.data.width)
-            .attr("height", cfg.nodeHeight);
+            .attr("height", cfg.nodeHeight)
+            .style("stroke", (d : any) => d.data.marked ? "#3050ef" : "grey")
+            .style("fill", (d : any) => d.data.marked ? "#ebefff" : "white");
 
         nodeEnter
             .append("text")
@@ -336,11 +339,13 @@ export async function render(
             .attr("font-size", f.fontSize)
             .attr("font-family", f.fontFamily)
             .attr("class", (d: any) => "node-text " + d.data.value.replace(/\s/g, "-") + "-text")
-            .attr("fill", f.color)
+            //.attr("fill", f.color)
+            .attr("fill", (d : any) => d.data.marked ? "#3050ef" : "grey")
             .style("fill-opacity", 1e-6)
             .transition()
             .duration(cfg.duration)
-            .style("fill-opacity", 1);
+            .style("fill-opacity", 1);//.style("stroke", (d : any) => d.data.marked ? "#3050ef" : "grey");
+            
 
         // Toggle children on click.
         function toggleCollapse(d: any) {
@@ -475,26 +480,11 @@ function initZoom(zoom: any) {
 }
 
 export function singleClick(d: any, update: any, tooltip: Tooltip, f: FontInfo) {
-    d.data.marked = !d.data.marked || false;
-    d3.selectAll(".node-rectangle").style("stroke", "grey").style("fill", "white");
-    d3.selectAll(".node-text")
-        .style("stroke", f.color)
-        .style("font-weight", f.fontWeight)
-        .style("font-size", f.fontSize);
-    d3.selectAll(".info-box").remove();
-
     // Change marking of all other nodes
-    clearAllMarkings(d);
-
+    d.data.mark(d.data);
+    console.log(d.data.marked);
     if (d.data.marked) {
         renderInfoBox(d, update, tooltip, f);
     }
-
-    d3.selectAll(`.${d.data.value.replace(/\s/g, "-")}`)
-        .style("stroke", d.data.marked ? "#3050ef" : "grey")
-        .style("fill", d.data.marked ? "#ebefff" : "white");
-
-    d3.selectAll(`.${d.data.value.replace(/\s/g, "-")}-text`).style("stroke", d.data.marked ? "#3050ef" : "grey");
-    // Call internal api here
     update(d);
 }

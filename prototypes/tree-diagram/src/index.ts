@@ -1,6 +1,6 @@
 import { Data, render } from "./render";
 import { buildNodes, Nodes} from "./series";
-import { DataTable, DataView, Mod } from "spotfire-api";
+import { DataTable, DataView, Mod, DataViewRow } from "spotfire-api";
 import { treeToList, createTree } from "./helper";
 // var events = require("events");
 
@@ -148,8 +148,18 @@ async function getData(dataView : DataView) {
     rows?.forEach(row => {
         objects.push({
             marked : row.isMarked(),
-            mark : () => {
-                row.mark("Toggle")
+            mark : (d : any) => {
+                let rowsToMark : DataViewRow[] = [];
+                rows.forEach(row => {
+                    if (row.categorical("Node").formattedValue() == d.value) {
+                        rowsToMark.push(row);
+                    }
+                })
+                if (d.marked) {
+                    dataView.mark(rowsToMark, "Toggle")
+                } else {
+                    dataView.mark(rowsToMark, "Replace")
+                }
             },
             value : row.categorical("Node").formattedValue(),
             id : row.categorical("Id").formattedValue(),

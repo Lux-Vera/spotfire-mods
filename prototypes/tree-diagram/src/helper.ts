@@ -71,14 +71,14 @@ export function treeToList(tree : any) {
             children.shift();
         })
     }
-    return children;
+    return collectedNodes;
 }
 
 export function createTree(data : any, fontSize : any) {
     const hashTable = Object.create(null);
     data.forEach((d : any) => {
         //Create a hashtable with the ID as keys
-        hashTable[d.id] = {mark : d.mark, value: d.value, ID: d.id, width: fontSize*d.value.length*0.7, parentID: d.parentId, children: [] };
+        hashTable[d.id] = {marked : d.marked,mark : d.mark, value: d.value, ID: d.id, width: fontSize*d.value.length*0.7, parentID: d.parentId, children: [] };
     });
     // Take the root of the tree
     let tree : any = hashTable[data[0].id]
