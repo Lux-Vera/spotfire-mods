@@ -4,7 +4,7 @@ import { FontInfo, Size, Tooltip } from "spotfire-api";
 import { RenderState } from "./index";
 import { Nodes } from "./series";
 import { renderInfoBox } from "./infobox";
-import { clearAllMarkings } from "./helper";
+import { clearAllMarkings, getAllNodes } from "./helper";
 import { renderResetPositionButton, renderZoomInButton, renderZoomOutButton, ChartSize } from "./buttons";
 // type D3_SELECTION = d3.Selection<SVGGElement, unknown, HTMLElement, any>;
 // type D3_HIERARCHY_SELECTION = d3.Selection<SVGGElement | d3.EnterElement, d3.HierarchyPointNode<unknown> | d3.HierarchyPointLink<unknown>, SVGGElement, unknown>;
@@ -141,6 +141,19 @@ export async function render(
     root.x0 = (height - 2 * padding) / 2;
     root.y0 = 0;
 
+    //const input = document.getElementById("search");
+    //if (input == null) {
+    //    return;
+    //}
+    //input.addEventListener("change", (e : any) => {
+    //    const target = e.target as HTMLInputElement;
+    //    console.log(target.value);
+    //    if(target.value !== "") {
+    //        search(root, target.value);
+    //    }
+    //})
+    //search("Analyse", root);
+
     /**
      * Update the graph
      */
@@ -180,6 +193,7 @@ export async function render(
         var node = svgChart.selectAll(".node").data(nodes, function (d: any) {
             return d.id || (d.id = ++i);
         });
+
 
         drawNode(node.enter(), source, transition);
 
@@ -224,6 +238,15 @@ export async function render(
             d.y0 = d.y;
         });
 
+        const input = document.getElementById("search");
+        if (input == null) {
+            return;
+        }
+        input.addEventListener("change", (e : any) => {
+            const target = e.target as HTMLInputElement;
+            search(root, target.value);
+        })
+
         //let skip = false;
         //nodes.forEach((node: any) => {
         //    if (node.data.marked && !skip) {
@@ -250,15 +273,14 @@ export async function render(
         source: any,
         transition: boolean
     ) {
-        console.log("Link: ", link);
-        console.log("Source: ", source);
 
         /**
          * Create the branches
          */
         link.append("path")
             .attr("class", "link")
-            .attr("id", (d) => `${source.data.parentID}-${source.data.ID}`) // Allows us to mark this node given a sitepath in infobox.ts
+            //.style("stroke", "grey")
+            .attr("id", (d : any) => `path-${d.target.data.parentID}-${d.target.data.ID}`) // Allows us to mark this node given a sitepath in infobox.ts
             .attr("d", (d) => {
                 return diagonal({
                     source: {
@@ -572,4 +594,32 @@ function handleZoom() {
  */
 function initZoom(zoom: any) {
     d3.select("svg").call(zoom).on("dblclick.zoom", null);
+}
+
+export function search(root: any, searchTerm : string) {
+    d3.selectAll(".link").style("stroke", "grey");
+    d3.selectAll(".node-rectangle").style("stroke", "grey");
+    if (searchTerm === ""){
+        return;
+    }
+    let allNodes = getAllNodes(root)
+    let selectorString = ""
+    allNodes.forEach((node : any) => {
+
+        if (node.data.value.substring(0, searchTerm.length).toLowerCase() == searchTerm.toLowerCase()) {
+            selectorString = selectorString.concat(",",`.${node.data.value.replace(/\s/g, "-")}`)
+            // Mark all links
+            let currentNode = node;
+            let root = currentNode;
+            while (currentNode.parent !== null) {
+                let path = d3.select(`#path-${currentNode.data.parentID}-${currentNode.data.ID}`);
+                path.style("stroke", "red");
+                root = currentNode.parent;
+                currentNode = root;
+            }
+        }
+    })
+    if (selectorString !== "") {
+        d3.selectAll(selectorString.substring(1)).filter(".node-rectangle").style("stroke", "red");
+    }
 }
