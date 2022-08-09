@@ -1,6 +1,6 @@
-import { Data, render } from "./render";
-import { buildNodes, Nodes} from "./series";
-import { DataTable, DataView, Mod, DataViewRow } from "spotfire-api";
+import { render } from "./render";
+import { Nodes} from "./series";
+import { DataTable, DataView, Mod, DataViewRow, ModProperty } from "spotfire-api";
 import { createTree } from "./helper";
 // var events = require("events");
 
@@ -25,6 +25,8 @@ Spotfire.initialize(async (mod) => {
     const reader = mod.createReader(
         mod.visualization.data(),
         mod.windowSize(),
+        mod.property<boolean>("showInfoBox"),
+        mod.property<boolean>("markRootPath")
         // Add properties...
         // E.g. mod.property<string>("curveType"),
     );
@@ -51,7 +53,8 @@ Spotfire.initialize(async (mod) => {
     async function onChange(
         dataView: DataView,
         windowSize: Spotfire.Size,
-        dataTable: DataTable
+        showInfoBox : ModProperty<boolean>,
+        showRootPath : ModProperty<boolean>
         // Add properties ...
         // curveType: ModProperty<string>,
     ) {
@@ -65,6 +68,8 @@ Spotfire.initialize(async (mod) => {
             },
             mod.controls.tooltip
         );
+
+        //renderSettingsButton(mod, showInfoBox, showRootPath);
 
         context.signalRenderComplete();
     }
@@ -169,4 +174,47 @@ async function getData(dataView : DataView) : Promise<Nodes[]> {
     objects.sort((a : any, b : any) => (a.id - b.id))
     return objects
 
+}
+
+function renderSettingsButton(mod: Mod, showInfoBox: ModProperty<boolean>, showRootPath: ModProperty<boolean>) {
+    let settingsButton = document.querySelector<HTMLElement>(".settings");
+    settingsButton?.classList.toggle("visible", mod.getRenderContext().isEditing);
+    let pos = settingsButton!.getBoundingClientRect();
+
+    settingsButton!.onclick = () => {
+        mod.controls.popout.show(
+            {
+                x: pos.left + pos.width / 2,
+                y: pos.top + pos.height,
+                autoClose: true,
+                alignment: "Top",
+                onChange(event) {
+                    if (event.name == "showInfoBox") {
+                        showInfoBox.set(event.value);
+                    }
+                    if (event.name == "showRootPath") {
+                        showRootPath.set(event.value);
+                    }
+                }
+            },
+            () => [
+                mod.controls.popout.section({
+                    children: [
+                        mod.controls.popout.components.checkbox({
+                            enabled : true,
+                            name : "showInfoBox",
+                            checked: showInfoBox.value() || false,
+                            text: "Show Info Box"
+                        }),
+                        mod.controls.popout.components.checkbox({
+                            enabled: true,
+                            name: "showRootPath",
+                            checked: showRootPath.value() || false,
+                            text: "Show root path"
+                        })
+                    ]
+                })
+            ]
+        );
+    };
 }

@@ -4,7 +4,18 @@
     "name": "Tree diagram",
     "id": "spotfire-tree-diagram-mod",
     "icon": "icon.svg",
-    "properties": [],
+    "properties": [
+        {
+            "name" : "showInfoBox",
+            "type" : "boolean",
+            "defaultValue" : true
+        },
+        {
+            "name" : "markRootPath",
+            "type" : "boolean",
+            "defaultValue" : true
+        }
+    ],
     "dataViewDefinition": {
         "colorAxis": {
             "mode": "categorical",

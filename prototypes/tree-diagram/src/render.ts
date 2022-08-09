@@ -224,21 +224,21 @@ export async function render(
             d.y0 = d.y;
         });
 
-        let skip = false;
-        nodes.forEach((node: any) => {
-            if (node.data.marked && !skip) {
-                renderInfoBox(node, tooltip);
-                skip = true;
-            }
-        });
-
-        /**
-         * If no nodes are marked remove the infobox that
-         * could have been rendered previously.
-         */
-        if (!skip) {
-            d3.selectAll(".info-box").remove();
-        }
+        //let skip = false;
+        //nodes.forEach((node: any) => {
+        //    if (node.data.marked && !skip) {
+        //        renderInfoBox(node, tooltip);
+        //        skip = true;
+        //    }
+        //});
+//
+        ///**
+        // * If no nodes are marked remove the infobox that
+        // * could have been rendered previously.
+        // */
+        //if (!skip) {
+        //    d3.selectAll(".info-box").remove();
+        //}
     }
 
     /**
@@ -250,11 +250,15 @@ export async function render(
         source: any,
         transition: boolean
     ) {
+        console.log("Link: ", link);
+        console.log("Source: ", source);
+
         /**
          * Create the branches
          */
         link.append("path")
             .attr("class", "link")
+            .attr("id", (d) => `${source.data.parentID}-${source.data.ID}`) // Allows us to mark this node given a sitepath in infobox.ts
             .attr("d", (d) => {
                 return diagonal({
                     source: {
