@@ -12,7 +12,7 @@ import { renderResetPositionButton, renderZoomInButton, renderZoomOutButton, Cha
  * Main svg container
  */
 const svg = d3.select("#mod-container").append("svg").attr("xmlns", "http://www.w3.org/2000/svg");
-
+const COLLAPSE = true;
 export interface Options {
     /** The height of the nodes */
     nodeHeight: number;
@@ -141,6 +141,7 @@ export async function render(
     root.x0 = (height - 2 * padding) / 2;
     root.y0 = 0;
 
+
     //const input = document.getElementById("search");
     //if (input == null) {
     //    return;
@@ -173,7 +174,9 @@ export async function render(
         /**
          * Compute the new tree layout
          */
-        var treeLayout = tree(root);
+        
+        //var treeLayout = tree(root);
+        var treeLayout = tree(source);
         var links = treeLayout.links();
         var nodes = treeLayout.descendants();
 
@@ -194,7 +197,6 @@ export async function render(
             return d.id || (d.id = ++i);
         });
 
-
         drawNode(node.enter(), source, transition);
 
         /**
@@ -211,6 +213,7 @@ export async function render(
         renderResetPositionButton(svg, zoom, chartSize, tooltip, { X: 10, Y: 50, width: 20, height: 20 });
         renderZoomInButton(svg, zoom, tooltip, { X: 10, Y: 80, width: 20, height: 20 });
         renderZoomOutButton(svg, zoom, tooltip, { X: 10, Y: 110, width: 20, height: 20 });
+        updateColumnPicker(root);
         /**
          * Transition nodes to new position
          */
@@ -238,13 +241,24 @@ export async function render(
             d.y0 = d.y;
         });
 
-        const input = document.getElementById("search");
-        if (input == null) {
+        const searchInput = document.getElementById("search");
+        if (searchInput == null) {
             return;
         }
-        input.addEventListener("change", (e : any) => {
+
+        searchInput.addEventListener("change", (e: any) => {
             const target = e.target as HTMLInputElement;
             search(root, target.value);
+        });
+
+        const columnInput = document.getElementById("column-input");
+        if (columnInput == null) {
+            return;
+        }
+
+        columnInput.addEventListener("change", (e : any) => {
+            const target = e.target as HTMLInputElement;
+            markLevel(source, Number(target.value))
         })
 
         //let skip = false;
@@ -254,7 +268,7 @@ export async function render(
         //        skip = true;
         //    }
         //});
-//
+        //
         ///**
         // * If no nodes are marked remove the infobox that
         // * could have been rendered previously.
@@ -273,14 +287,13 @@ export async function render(
         source: any,
         transition: boolean
     ) {
-
         /**
          * Create the branches
          */
         link.append("path")
             .attr("class", "link")
             //.style("stroke", "grey")
-            .attr("id", (d : any) => `path-${d.target.data.parentID}-${d.target.data.ID}`) // Allows us to mark this node given a sitepath in infobox.ts
+            .attr("id", (d: any) => `path-${d.target.data.parentID}-${d.target.data.ID}`) // Allows us to mark this node given a sitepath in infobox.ts
             .attr("d", (d) => {
                 return diagonal({
                     source: {
@@ -511,6 +524,116 @@ export async function render(
         nodesExit.select("text").style("fill-opacity", 1e-6).style("font-size", 1e-6);
     }
 
+    function markLevel(root : any, level: number) {
+        let allNodes = getAllNodes(root);
+        let toMark : number[] = []
+        allNodes.forEach((node : any) => {
+            if (node.depth == level) {
+                toMark.push(Number(node.data.ID))
+            }
+        })
+
+        if (toMark.length > 0) {
+            allNodes[0].data.markColumn(toMark);
+        }
+        //Snupdate(root, false);
+    }
+
+    function search(root: any, searchTerm: string) {
+        // Todo COLLAPSE
+        d3.selectAll(".link").style("stroke", "grey");
+        d3.selectAll(".node-rectangle").style("stroke", "grey");
+        
+        if (searchTerm === "") {
+            let rootNode;
+            let allNodes = getAllNodes(root);
+            allNodes.forEach(node => {
+                console.log("NODE IS: ", node);
+                if (node.data.id == 1) {
+                    rootNode = node;
+                }
+            })
+            update(rootNode, true);
+        }
+
+        let allNodes = getAllNodes(root);
+        let selectorString = "";
+        let nodeMap = Object.create(null);
+
+        allNodes.forEach((node: any) => {
+            nodeMap[node.data.ID] = { children: [], _children: node.data.children };
+            if (node.data.value.substring(0, searchTerm.length).toLowerCase() == searchTerm.toLowerCase()) {
+                nodeMap[node.data.ID].children =( node.children == []) ? undefined : node.children;
+                selectorString = selectorString.concat(",", `.${node.data.value.replace(/\s/g, "-")}`);
+                // Mark all links
+                let currentPath = [];
+                let currentNode = node;
+                let currentParent = currentNode;
+                while (currentNode.parent !== null) {
+                    if (!nodeMap[currentNode.data.parentID].children.includes(currentNode)) {
+                        nodeMap[currentNode.data.parentID].children = [
+                            ...nodeMap[currentNode.data.parentID].children,
+                            currentNode
+                        ];
+                    }
+                    let path = d3.select(`#path-${currentNode.data.parentID}-${currentNode.data.ID}`);
+                    path.style("stroke", "red");
+                    currentPath.push(currentNode);
+                    currentParent = currentNode.parent;
+                    currentNode = currentParent;
+                }
+            }
+        });
+
+        if (selectorString !== "") {
+            let selected = d3.selectAll(selectorString.substring(1));
+            let selectedRect = selected.filter(".node-rectangle");
+            selectedRect.style("stroke", "red");
+            // Also mark the text
+        }
+        
+        let newRoot;
+        if (COLLAPSE) {
+            allNodes.forEach((node: any) => {
+                node.data._children = node.data.children;
+                node.data.children = (nodeMap[node.data.ID].children == []) ? delete node.data.children : nodeMap[node.data.ID].children;
+                node.children = (nodeMap[node.data.ID].children == []) ? delete node.children : nodeMap[node.data.ID].children;
+                
+                if (node.data.ID == "1") {
+                    newRoot = node;
+                }
+            });
+        }
+        // Handle the collapse case
+        // Will have to traverse all nodes
+        update(newRoot, true);
+    }
+
+    function updateColumnPicker(root : any) {
+        let minMax = getColumnRange(root);
+        let picker = document.getElementById("column-input");
+        if (picker == null) {
+            return;
+        }
+        picker.setAttribute("min", String(minMax[0]))
+        picker.setAttribute("max", String(minMax[1]))
+        
+    }
+
+    function getColumnRange(root : any) : number[] {
+        let allNodes = getAllNodes(root);
+        let minMax = [allNodes[0].depth, allNodes[0].depth] // minMax[0] = min, minMax[1] = max
+        allNodes.forEach(node => {
+            if (node.depth < minMax[0]) {
+                minMax[0] = node.depth;
+            }
+            if (node.depth > minMax[1]) {
+                minMax[1] = node.depth;
+            }
+        })
+        return minMax;
+    }
+
     /**
      * Draws rectangular selection
      */
@@ -594,32 +717,4 @@ function handleZoom() {
  */
 function initZoom(zoom: any) {
     d3.select("svg").call(zoom).on("dblclick.zoom", null);
-}
-
-export function search(root: any, searchTerm : string) {
-    d3.selectAll(".link").style("stroke", "grey");
-    d3.selectAll(".node-rectangle").style("stroke", "grey");
-    if (searchTerm === ""){
-        return;
-    }
-    let allNodes = getAllNodes(root)
-    let selectorString = ""
-    allNodes.forEach((node : any) => {
-
-        if (node.data.value.substring(0, searchTerm.length).toLowerCase() == searchTerm.toLowerCase()) {
-            selectorString = selectorString.concat(",",`.${node.data.value.replace(/\s/g, "-")}`)
-            // Mark all links
-            let currentNode = node;
-            let root = currentNode;
-            while (currentNode.parent !== null) {
-                let path = d3.select(`#path-${currentNode.data.parentID}-${currentNode.data.ID}`);
-                path.style("stroke", "red");
-                root = currentNode.parent;
-                currentNode = root;
-            }
-        }
-    })
-    if (selectorString !== "") {
-        d3.selectAll(selectorString.substring(1)).filter(".node-rectangle").style("stroke", "red");
-    }
 }

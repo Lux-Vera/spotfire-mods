@@ -166,6 +166,18 @@ async function getData(dataView : DataView) : Promise<Nodes[]> {
                     dataView.mark(rowsToMark, "Replace")
                 }
             },
+            markColumn : (toMark : number[]) => {
+                let rowsToMark : DataViewRow[] = [];
+                console.log("toMark : ", toMark)
+                rows.forEach(row => {
+                    if (toMark.includes(Number(row.categorical("Id").formattedValue()))) {
+                        rowsToMark.push(row);
+                    }
+                })
+
+                console.log("rowstoMark: ", rowsToMark)
+                dataView.mark(rowsToMark, "Replace")
+            },
             value : row.categorical("Node").formattedValue(),
             id : row.categorical("Id").formattedValue(),
             parentId : row.categorical("ParentId").formattedValue()

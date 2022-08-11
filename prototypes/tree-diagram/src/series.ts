@@ -10,9 +10,10 @@ export interface Nodes {
     parentId : number;
     value: string;
     width?: number;
-    type?: NodeType,
-    mark(node : Nodes) : void,
-    marked : boolean,
+    type?: NodeType;
+    mark(node : Nodes) : void;
+    markColumn(toMark : number[]) : void;
+    marked : boolean;
     //mark(mode?: MarkingOperation): void;
     children: Nodes[] | null;
     _children: Nodes[] | null;
