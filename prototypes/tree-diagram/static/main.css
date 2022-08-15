@@ -98,3 +98,9 @@ body {
     top: 0;
     left: 0;
 }
+
+.column-picker-container {
+    position: absolute;
+    top: 24px;
+    left: 0;
+}

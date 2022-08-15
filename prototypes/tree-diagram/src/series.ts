@@ -17,6 +17,8 @@ export interface Nodes {
     //mark(mode?: MarkingOperation): void;
     children: Nodes[] | null;
     _children: Nodes[] | null;
+    level? : number;
+    color? : string;
 }
 
 //export function buildNodes(

@@ -4,7 +4,7 @@ import { FontInfo, Size, Tooltip } from "spotfire-api";
 import { RenderState } from "./index";
 import { Nodes } from "./series";
 import { renderInfoBox } from "./infobox";
-import { clearAllMarkings, getAllNodes } from "./helper";
+import { clearAllMarkings, generateDimensions, getAllNodes, reBuildNodes, Dimensions } from "./helper";
 import { renderResetPositionButton, renderZoomInButton, renderZoomOutButton, ChartSize } from "./buttons";
 // type D3_SELECTION = d3.Selection<SVGGElement, unknown, HTMLElement, any>;
 // type D3_HIERARCHY_SELECTION = d3.Selection<SVGGElement | d3.EnterElement, d3.HierarchyPointNode<unknown> | d3.HierarchyPointLink<unknown>, SVGGElement, unknown>;
@@ -62,6 +62,7 @@ interface CustomLinkObject {
  * @param {Partial<Options>} config - config
  * @param {Object} styling - styling
  * @param {Tooltip} tooltip - tooltip
+ * @param {Dimensions} dimensions - used to scale the tree.
  */
 export async function render(
     state: RenderState,
@@ -70,7 +71,8 @@ export async function render(
     styling: {
         font: FontInfo;
     },
-    tooltip: Tooltip
+    tooltip: Tooltip,
+    dimensions : Dimensions
 ) {
     if (state.preventRender) {
         // Early return if the state currently disallows rendering.
@@ -111,8 +113,23 @@ export async function render(
     /**
      * Create tree layout
      */
-    let tree = d3.tree().size([height - 2 * padding, width - 2 * padding]);
 
+    //let tree = d3.tree().size([height - 2 * padding, width - 2 * padding]);
+    
+    var tree = d3.tree()
+    //.size([height - 2 * padding, width - 2 * padding])
+    .nodeSize([5,width/(dimensions.depth*2)])
+    .separation(function separation(a : d3.HierarchyPointNode<any>, b : d3.HierarchyPointNode<any>){
+        if (a.parent == b.parent) {
+            return 8;
+        }
+        else if (a.data.level == b.data.level) {
+            return 12;
+        }
+        else {
+            return 1;
+        }
+    });
     var diagonal = function link(d: CustomLinkObject) {
         const s = d.source;
         const t = d.target;
@@ -138,9 +155,8 @@ export async function render(
 
     let root: any = d3.hierarchy(nodesData);
 
-    root.x0 = (height - 2 * padding) / 2;
+    root.x0 = (height - 2 * padding) / 4;
     root.y0 = 0;
-
 
     //const input = document.getElementById("search");
     //if (input == null) {
@@ -299,11 +315,11 @@ export async function render(
                     source: {
                         x: source.x0,
                         y: source.y0,
-                        nodeWidth: source.data.width
+                        nodeWidth: source.data.width + 100
                     },
                     target: {
-                        x: source.x0,
-                        y: source.y0 + source.data.width / 2,
+                        x: source.x0 - source.data.width/2,
+                        y: source.y0 + source.data.width/2,
                         nodeWidth: source.data.width
                     }
                 });
@@ -336,7 +352,8 @@ export async function render(
                 return diagonal({
                     source: {
                         x: d.source.x,
-                        y: d.source.y,
+                        // y : d.source.y
+                        y: d.source.y + d.source.data.width/2.5,
                         nodeWidth: d.source.data.width
                     },
                     target: {
@@ -411,11 +428,14 @@ export async function render(
 
         let nodeEnter = node
             .append("g")
+            .style("z-index", 1)
             .attr("class", (d: any) => "node " + d.data.type + " " + d.data.value.replace(/\s/g, "-"))
-            .attr("transform", () => "translate(" + (source.y0 + source.data.width / 2) + "," + source.x0 + ")")
+            .attr("transform", () => "translate(" + (source.y0 + source.data.width / 2) + "," + (source.x0) + ")")
             .on("click", (d: any) => {
                 if (d3.event.ctrlKey) {
                     toggleCollapse(d);
+                } else if (d3.event.altKey) {
+                    markChildNodes(d)
                 } else {
                     d.data.mark(d.data);
                 }
@@ -427,27 +447,33 @@ export async function render(
                 .attr("rx", 10)
                 .transition()
                 .duration(cfg.duration)
-                .attr("y", -cfg.nodeHeight / 2)
+                .attr("y",  -cfg.nodeHeight / 2)
                 .attr("class", (d: any) => d.data.value.replace(/\s/g, "-") + " node-rectangle")
-                .attr("x", (d: any) => -d.data.width / 2)
+                //.attr("id", (d : any) => d.data.value.replace(/\s/g, "-") + "-" + d.data.ID)
+                .attr("x", (d: any) => -d.data.width / 20)
+                //.attr("width", (d: any) => d.data.width)
                 .attr("width", (d: any) => d.data.width)
                 .attr("height", cfg.nodeHeight)
-                .style("stroke", (d: any) => (d.data.marked ? "#3050ef" : "grey"))
-                .style("stroke-dasharray", (d: any) => (d.data.children.length == 0 ? "2, 3" : "0"))
-                .style("fill", (d: any) => (d.data.marked ? "#ebefff" : "white"));
+                //.style("stroke", (d: any) => (d.data.marked ? "#3050ef" : "grey"))
+                .style("stroke", (d: any) => (d.data.marked ? d.data.color : "grey"))
+                .style("stroke-dasharray", (d: any) => (d.data.children?.length == 0 ? "2, 3" : "0"))
+                //.style("fill", (d: any) => (d.data.marked ? "#ebefff" : "white"))
+                .style("fill", (d: any) => (d.data.marked ? d.data.color : "white"));
 
             nodeEnter
                 .append("text")
                 .attr("dy", ".35em")
-                .style("text-anchor", "middle")
+                .style("text-anchor", "start")
                 .text((d: any) => d.data.value)
                 .attr("font-style", f.fontStyle)
                 .attr("font-weight", f.fontWeight)
                 .attr("font-size", f.fontSize)
                 .attr("font-family", f.fontFamily)
                 .attr("class", (d: any) => "node-text " + d.data.value.replace(/\s/g, "-") + "-text")
+                .attr("id", (d : any) => "rect-" + d.data.ID)
                 //.attr("fill", f.color)
-                .attr("fill", (d: any) => (d.data.marked ? "#3050ef" : "grey"))
+                //.attr("fill", (d: any) => (d.data.marked ? "#3050ef" : "grey"))
+                .attr("fill", (d: any) => (d.data.marked ? d.data.color : "grey"))
                 .style("fill-opacity", 1e-6)
                 .transition()
                 .duration(cfg.duration)
@@ -458,17 +484,28 @@ export async function render(
                 .attr("rx", 10)
                 .attr("y", -cfg.nodeHeight / 2)
                 .attr("class", (d: any) => d.data.value.replace(/\s/g, "-") + " node-rectangle")
-                .attr("x", (d: any) => -d.data.width / 2)
+                .attr("id", (d : any) => "rect-" + d.data.ID)
+                //.attr("x", (d: any) => -d.data.width / 20)
+                .attr("x", (d: any) => -d.data.width / 20)
+                //.attr("width", (d: any) => d.data.width)
                 .attr("width", (d: any) => d.data.width)
                 .attr("height", cfg.nodeHeight)
-                .style("stroke", (d: any) => (d.data.marked ? "#3050ef" : "grey"))
-                .style("stroke-dasharray", (d: any) => (d.data.children.length == 0 ? "2, 3" : "0"))
-                .style("fill", (d: any) => (d.data.marked ? "#ebefff" : "white"));
+                //.style("stroke", (d: any) => (d.data.marked ? "#3050ef" : "grey"))
+                .style("stroke", (d: any) => (d.data.marked ? d.data.color : "grey"))
+                .style("stroke-dasharray", (d: any) => {
+                    if ((d.data.children == undefined) || (d.data.children.length == 0)){
+                        return "2, 3"
+                    } else {
+                        return "0"
+                    }
+                })
+                //.style("fill", (d: any) => (d.data.marked ? "#ebefff" : "white"))
+                .attr("fill", (d: any) => (d.data.marked ? d.data.color : "grey"));
 
             nodeEnter
                 .append("text")
                 .attr("dy", ".35em")
-                .style("text-anchor", "middle")
+                .style("text-anchor", "start")
                 .text((d: any) => d.data.value)
                 .attr("font-style", f.fontStyle)
                 .attr("font-weight", f.fontWeight)
@@ -476,7 +513,8 @@ export async function render(
                 .attr("font-family", f.fontFamily)
                 .attr("class", (d: any) => "node-text " + d.data.value.replace(/\s/g, "-") + "-text")
                 //.attr("fill", f.color)
-                .attr("fill", (d: any) => (d.data.marked ? "#3050ef" : "grey"))
+                //.attr("fill", (d: any) => (d.data.marked ? "#3050ef" : "grey"))
+                .attr("fill", (d: any) => (d.data.marked ? d.data.color : "grey"))
                 .style("fill-opacity", 1e-6)
                 .style("fill-opacity", 1); //.style("stroke", (d : any) => d.data.marked ? "#3050ef" : "grey");
         }
@@ -490,7 +528,37 @@ export async function render(
                 d.children = d._children;
                 d._children = null;
             }
-            update(d, true);
+            update(source, true);
+        }
+
+        function markChildNodes(d : any) {
+            
+            if (d3.selectAll(`#rect-${d.data.ID}`).style("stroke") == "red") {
+                d3.selectAll(".link").style("stroke", "grey");
+                d3.selectAll(".node-rectangle").style("stroke", "grey");
+                return;
+            }
+
+            d3.selectAll(".link").style("stroke", "grey");
+            d3.selectAll(".node-rectangle").style("stroke", "grey");
+
+            let toProcess = [d];
+
+            if (toProcess == null) {
+                return;
+            }
+
+            while(toProcess.length > 0) {
+                if (toProcess[0].children && toProcess[0].children.length > 0) {
+                    toProcess[0].children.forEach((child : any) => {
+                        let path = d3.select(`#path-${child.data.parentID}-${child.data.ID}`);
+                        path.style("stroke", "red");
+                    })
+                    toProcess = [...toProcess, ...toProcess[0].children]
+                }
+                d3.selectAll(`#rect-${toProcess[0].data.ID}`).style("stroke", "red");
+                toProcess.shift();
+            }
         }
     }
 
@@ -540,20 +608,18 @@ export async function render(
     }
 
     function search(root: any, searchTerm: string) {
-        // Todo COLLAPSE
+        // Todo: not working when clearing the second time
         d3.selectAll(".link").style("stroke", "grey");
         d3.selectAll(".node-rectangle").style("stroke", "grey");
         
+        /**
+         * Rebuild the original tree
+         * before starting a new search.
+         */
+        reBuildNodes(root);
+
         if (searchTerm === "") {
-            let rootNode;
-            let allNodes = getAllNodes(root);
-            allNodes.forEach(node => {
-                console.log("NODE IS: ", node);
-                if (node.data.id == 1) {
-                    rootNode = node;
-                }
-            })
-            update(rootNode, true);
+            return update(root, true);
         }
 
         let allNodes = getAllNodes(root);
@@ -561,11 +627,15 @@ export async function render(
         let nodeMap = Object.create(null);
 
         allNodes.forEach((node: any) => {
-            nodeMap[node.data.ID] = { children: [], _children: node.data.children };
+            nodeMap[node.data.ID] = { children: [], _children: node.children , data : { children : [], _children : node.data.children}};
             if (node.data.value.substring(0, searchTerm.length).toLowerCase() == searchTerm.toLowerCase()) {
-                nodeMap[node.data.ID].children =( node.children == []) ? undefined : node.children;
+                nodeMap[node.data.ID].children = (node.children?.length == 0) ? [] : node.children;
                 selectorString = selectorString.concat(",", `.${node.data.value.replace(/\s/g, "-")}`);
-                // Mark all links
+
+                /**
+                 * Mark links from the node matching the searchresult
+                 * to the root node.
+                 */
                 let currentPath = [];
                 let currentNode = node;
                 let currentParent = currentNode;
@@ -580,33 +650,53 @@ export async function render(
                     path.style("stroke", "red");
                     currentPath.push(currentNode);
                     currentParent = currentNode.parent;
+                    d3.selectAll(`#rect-${currentNode.data.ID}`).style("stroke", "red");
                     currentNode = currentParent;
+
                 }
+                d3.selectAll(`#rect-${currentNode.data.ID}`).style("stroke", "red");
             }
         });
 
-        if (selectorString !== "") {
-            let selected = d3.selectAll(selectorString.substring(1));
-            let selectedRect = selected.filter(".node-rectangle");
-            selectedRect.style("stroke", "red");
-            // Also mark the text
-        }
+        /**
+         * Mark the nodes included in the
+         * generated selector string
+         */
+        //if (selectorString !== "") {
+        //    let selected = d3.selectAll(selectorString.substring(1));
+        //    let selectedRect = selected.filter(".node-rectangle");
+        //    selectedRect.style("stroke", "red");
+        //}
         
         let newRoot;
+
+        /**
+         * Remove children from nodes that
+         * aren't included in the search so we
+         * can collapse parts of the tree.
+         */
         if (COLLAPSE) {
             allNodes.forEach((node: any) => {
-                node.data._children = node.data.children;
-                node.data.children = (nodeMap[node.data.ID].children == []) ? delete node.data.children : nodeMap[node.data.ID].children;
-                node.children = (nodeMap[node.data.ID].children == []) ? delete node.children : nodeMap[node.data.ID].children;
-                
+                node.data._children = nodeMap[node.data.ID].data._children;
+                node._children = nodeMap[node.data.ID]._children;
+                if (nodeMap[node.data.ID].children?.length == 0) {
+                    delete node.children;
+                    delete node.data.children;
+                } else {
+                    node.children = nodeMap[node.data.ID].children;
+                    node.data.children = nodeMap[node.data.ID].data.children;
+                }
                 if (node.data.ID == "1") {
                     newRoot = node;
                 }
             });
         }
         // Handle the collapse case
+        //reBuildNodes(newRoot);
         // Will have to traverse all nodes
+
         update(newRoot, true);
+        //update(root, true);
     }
 
     function updateColumnPicker(root : any) {

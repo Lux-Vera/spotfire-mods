@@ -1,7 +1,7 @@
 import { render } from "./render";
 import { Nodes} from "./series";
 import { DataTable, DataView, Mod, DataViewRow, ModProperty } from "spotfire-api";
-import { createTree } from "./helper";
+import { createTree, generateDimensions } from "./helper";
 // var events = require("events");
 
 const Spotfire = window.Spotfire;
@@ -59,6 +59,8 @@ Spotfire.initialize(async (mod) => {
         // curveType: ModProperty<string>,
     ) {
         let data = await buildData(mod, dataView);
+        let dimensions = generateDimensions(data.nodes)
+
         await render(
             state,
             data,
@@ -66,7 +68,8 @@ Spotfire.initialize(async (mod) => {
             {
                 font: context.styling.general.font,
             },
-            mod.controls.tooltip
+            mod.controls.tooltip,
+            dimensions
         );
 
         //renderSettingsButton(mod, showInfoBox, showRootPath);
@@ -168,7 +171,6 @@ async function getData(dataView : DataView) : Promise<Nodes[]> {
             },
             markColumn : (toMark : number[]) => {
                 let rowsToMark : DataViewRow[] = [];
-                console.log("toMark : ", toMark)
                 rows.forEach(row => {
                     if (toMark.includes(Number(row.categorical("Id").formattedValue()))) {
                         rowsToMark.push(row);
@@ -180,7 +182,8 @@ async function getData(dataView : DataView) : Promise<Nodes[]> {
             },
             value : row.categorical("Node").formattedValue(),
             id : row.categorical("Id").formattedValue(),
-            parentId : row.categorical("ParentId").formattedValue()
+            parentId : row.categorical("ParentId").formattedValue(),
+            color : row.color().hexCode
         })
     })
     objects.sort((a : any, b : any) => (a.id - b.id))
