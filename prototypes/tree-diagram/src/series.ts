@@ -1,6 +1,4 @@
-import {Column, MarkingOperation } from "spotfire-api";
-import { RawData } from "./index";
-import * as d3 from "d3";
+
 export enum NodeType {
     Internal = "node-internal",
     Leaf = "node-leaf"

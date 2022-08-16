@@ -1,4 +1,4 @@
-import { Numeric } from "d3";
+
 import { Nodes } from "./series";
 
 /**

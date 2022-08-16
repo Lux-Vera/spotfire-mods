@@ -3,8 +3,7 @@ import * as d3 from "d3";
 import { FontInfo, Size, Tooltip } from "spotfire-api";
 import { RenderState } from "./index";
 import { Nodes } from "./series";
-import { renderInfoBox } from "./infobox";
-import { clearAllMarkings, generateDimensions, getAllNodes, reBuildNodes, Dimensions } from "./helper";
+import { getAllNodes, reBuildNodes, Dimensions } from "./helper";
 import { renderResetPositionButton, renderZoomInButton, renderZoomOutButton, ChartSize } from "./buttons";
 // type D3_SELECTION = d3.Selection<SVGGElement, unknown, HTMLElement, any>;
 // type D3_HIERARCHY_SELECTION = d3.Selection<SVGGElement | d3.EnterElement, d3.HierarchyPointNode<unknown> | d3.HierarchyPointLink<unknown>, SVGGElement, unknown>;
@@ -12,7 +11,7 @@ import { renderResetPositionButton, renderZoomInButton, renderZoomOutButton, Cha
  * Main svg container
  */
 const svg = d3.select("#mod-container").append("svg").attr("xmlns", "http://www.w3.org/2000/svg");
-const COLLAPSE = true;
+
 export interface Options {
     /** The height of the nodes */
     nodeHeight: number;
@@ -79,9 +78,9 @@ export async function render(
         return;
     }
 
-    const onSelection = (dragSelectActive: boolean) => {
-        state.preventRender = dragSelectActive;
-    };
+    //const onSelection = (dragSelectActive: boolean) => {
+    //    state.preventRender = dragSelectActive;
+    //};
 
     /**
      * The constant that contains all the options related to the way the chart is drawn
@@ -226,9 +225,9 @@ export async function render(
         Draw zoom handling buttons
         */
         let chartSize: ChartSize = { width: width - 2 * padding, height: height };
-        renderResetPositionButton(svg, zoom, chartSize, tooltip, { X: 10, Y: 50, width: 20, height: 20 });
-        renderZoomInButton(svg, zoom, tooltip, { X: 10, Y: 80, width: 20, height: 20 });
-        renderZoomOutButton(svg, zoom, tooltip, { X: 10, Y: 110, width: 20, height: 20 });
+        renderResetPositionButton(svg, zoom, chartSize, tooltip, { X: 10, Y: 80, width: 20, height: 20 });
+        renderZoomInButton(svg, zoom, tooltip, { X: 10, Y: 105, width: 20, height: 20 });
+        renderZoomOutButton(svg, zoom, tooltip, { X: 10, Y: 130, width: 20, height: 20 });
         updateColumnPicker(root);
         /**
          * Transition nodes to new position
@@ -239,11 +238,11 @@ export async function render(
                 .transition()
                 .duration(cfg.duration)
                 .attr("transform", function (d: any) {
-                    return "translate(" + d.y + "," + d.x + ")";
+                    return "translate(" + d.y + "," + (d.x + 500) + ")";
                 });
         } else {
             svgChart.selectAll(".node").attr("transform", function (d: any) {
-                return "translate(" + d.y + "," + d.x + ")";
+                return "translate(" + d.y + "," + (d.x + 500) + ")";
             });
         }
 
@@ -257,14 +256,19 @@ export async function render(
             d.y0 = d.y;
         });
 
+        const searchCheckbox : any | null = document.getElementById("search-checkbox");
+        if (searchCheckbox == null) {
+            return;
+        }
+
         const searchInput = document.getElementById("search");
         if (searchInput == null) {
             return;
         }
 
         searchInput.addEventListener("change", (e: any) => {
-            const target = e.target as HTMLInputElement;
-            search(root, target.value);
+            const searchTarget = e.target as HTMLInputElement;
+            search(root, searchTarget.value, searchCheckbox.checked);
         });
 
         const columnInput = document.getElementById("column-input");
@@ -308,17 +312,17 @@ export async function render(
          */
         link.append("path")
             .attr("class", "link")
-            //.style("stroke", "grey")
+            .style("stroke", "grey")
             .attr("id", (d: any) => `path-${d.target.data.parentID}-${d.target.data.ID}`) // Allows us to mark this node given a sitepath in infobox.ts
             .attr("d", (d) => {
                 return diagonal({
                     source: {
-                        x: source.x0,
+                        x: source.x0 + 500,
                         y: source.y0,
                         nodeWidth: source.data.width + 100
                     },
                     target: {
-                        x: source.x0 - source.data.width/2,
+                        x: source.x0 - source.data.width/2 + 500,
                         y: source.y0 + source.data.width/2,
                         nodeWidth: source.data.width
                     }
@@ -336,12 +340,12 @@ export async function render(
                 .attr("d", (d: any) => {
                     return diagonal({
                         source: {
-                            x: d.source.x,
+                            x: d.source.x + 500,
                             y: d.source.y,
                             nodeWidth: d.source.data.width
                         },
                         target: {
-                            x: d.target.x,
+                            x: d.target.x + 500,
                             y: d.target.y,
                             nodeWidth: d.target.data.width
                         }
@@ -351,13 +355,13 @@ export async function render(
             svgChart.selectAll(".link").attr("d", (d: any) => {
                 return diagonal({
                     source: {
-                        x: d.source.x,
+                        x: d.source.x + 500,
                         // y : d.source.y
                         y: d.source.y + d.source.data.width/2.5,
                         nodeWidth: d.source.data.width
                     },
                     target: {
-                        x: d.target.x,
+                        x: d.target.x + 500,
                         y: d.target.y,
                         nodeWidth: d.target.data.width
                     }
@@ -382,12 +386,12 @@ export async function render(
                 .attr("d", () => {
                     return diagonal({
                         source: {
-                            x: source.x,
+                            x: source.x + 500,
                             y: source.y,
                             nodeWidth: source.data.width
                         },
                         target: {
-                            x: source.x,
+                            x: source.x + 500,
                             y: source.y + source.data.width / 2,
                             nodeWidth: source.data.width
                         }
@@ -398,12 +402,12 @@ export async function render(
             link.attr("d", () => {
                 return diagonal({
                     source: {
-                        x: source.x,
+                        x: source.x + 500,
                         y: source.y,
                         nodeWidth: source.data.width
                     },
                     target: {
-                        x: source.x,
+                        x: source.x + 500,
                         y: source.y + source.data.width / 2,
                         nodeWidth: source.data.width
                     }
@@ -430,7 +434,7 @@ export async function render(
             .append("g")
             .style("z-index", 1)
             .attr("class", (d: any) => "node " + d.data.type + " " + d.data.value.replace(/\s/g, "-"))
-            .attr("transform", () => "translate(" + (source.y0 + source.data.width / 2) + "," + (source.x0) + ")")
+            .attr("transform", () => "translate(" + (source.y0 + source.data.width / 2) + "," + (source.x0 + 500) + ")")
             .on("click", (d: any) => {
                 if (d3.event.ctrlKey) {
                     toggleCollapse(d);
@@ -450,12 +454,13 @@ export async function render(
                 .attr("y",  -cfg.nodeHeight / 2)
                 .attr("class", (d: any) => d.data.value.replace(/\s/g, "-") + " node-rectangle")
                 //.attr("id", (d : any) => d.data.value.replace(/\s/g, "-") + "-" + d.data.ID)
-                .attr("x", (d: any) => -d.data.width / 20)
+                .attr("x", (d: any) => (-d.data.width / 20))  
                 //.attr("width", (d: any) => d.data.width)
                 .attr("width", (d: any) => d.data.width)
                 .attr("height", cfg.nodeHeight)
                 //.style("stroke", (d: any) => (d.data.marked ? "#3050ef" : "grey"))
                 .style("stroke", (d: any) => (d.data.marked ? d.data.color : "grey"))
+                .attr("id", (d : any) => "rect-" + d.data.ID)
                 .style("stroke-dasharray", (d: any) => (d.data.children?.length == 0 ? "2, 3" : "0"))
                 //.style("fill", (d: any) => (d.data.marked ? "#ebefff" : "white"))
                 .style("fill", (d: any) => (d.data.marked ? d.data.color : "white"));
@@ -466,11 +471,11 @@ export async function render(
                 .style("text-anchor", "start")
                 .text((d: any) => d.data.value)
                 .attr("font-style", f.fontStyle)
-                .attr("font-weight", f.fontWeight)
+                .attr("font-weight", 400)
                 .attr("font-size", f.fontSize)
                 .attr("font-family", f.fontFamily)
                 .attr("class", (d: any) => "node-text " + d.data.value.replace(/\s/g, "-") + "-text")
-                .attr("id", (d : any) => "rect-" + d.data.ID)
+                .attr("id", (d : any) => "text-" + d.data.ID)
                 //.attr("fill", f.color)
                 //.attr("fill", (d: any) => (d.data.marked ? "#3050ef" : "grey"))
                 .attr("fill", (d: any) => (d.data.marked ? d.data.color : "grey"))
@@ -508,9 +513,10 @@ export async function render(
                 .style("text-anchor", "start")
                 .text((d: any) => d.data.value)
                 .attr("font-style", f.fontStyle)
-                .attr("font-weight", f.fontWeight)
+                .attr("font-weight", 400)
                 .attr("font-size", f.fontSize)
                 .attr("font-family", f.fontFamily)
+                .attr("id", (d : any) => "text-" + d.data.ID)
                 .attr("class", (d: any) => "node-text " + d.data.value.replace(/\s/g, "-") + "-text")
                 //.attr("fill", f.color)
                 //.attr("fill", (d: any) => (d.data.marked ? "#3050ef" : "grey"))
@@ -533,14 +539,14 @@ export async function render(
 
         function markChildNodes(d : any) {
             
-            if (d3.selectAll(`#rect-${d.data.ID}`).style("stroke") == "red") {
+            if (d3.selectAll(`#text-${d.data.ID}`).style("fill") == "red") {
                 d3.selectAll(".link").style("stroke", "grey");
-                d3.selectAll(".node-rectangle").style("stroke", "grey");
+                d3.selectAll(".node-text").style("fill", "grey");
                 return;
             }
 
             d3.selectAll(".link").style("stroke", "grey");
-            d3.selectAll(".node-rectangle").style("stroke", "grey");
+            d3.selectAll(".node-text").style("fill", "grey");
 
             let toProcess = [d];
 
@@ -556,7 +562,7 @@ export async function render(
                     })
                     toProcess = [...toProcess, ...toProcess[0].children]
                 }
-                d3.selectAll(`#rect-${toProcess[0].data.ID}`).style("stroke", "red");
+                d3.selectAll(`#text-${toProcess[0].data.ID}`).style("fill", "red");
                 toProcess.shift();
             }
         }
@@ -577,7 +583,7 @@ export async function render(
             .transition()
             .duration(cfg.duration)
             .attr("transform", function (d: any) {
-                return "translate(" + (source.y + source.data.width / 2) + "," + source.x + ")";
+                return "translate(" + (source.y + source.data.width / 2) + "," + (source.x + 500) + ")";
             })
             .remove();
 
@@ -607,10 +613,10 @@ export async function render(
         //Snupdate(root, false);
     }
 
-    function search(root: any, searchTerm: string) {
+    function search(root: any, searchTerm: string, collapse : boolean) {
         // Todo: not working when clearing the second time
         d3.selectAll(".link").style("stroke", "grey");
-        d3.selectAll(".node-rectangle").style("stroke", "grey");
+        d3.selectAll(".node-text").style("fill", "grey");
         
         /**
          * Rebuild the original tree
@@ -625,10 +631,13 @@ export async function render(
         let allNodes = getAllNodes(root);
         let selectorString = "";
         let nodeMap = Object.create(null);
+        let matchFound = false;
 
         allNodes.forEach((node: any) => {
             nodeMap[node.data.ID] = { children: [], _children: node.children , data : { children : [], _children : node.data.children}};
             if (node.data.value.substring(0, searchTerm.length).toLowerCase() == searchTerm.toLowerCase()) {
+                matchFound = true; 
+                d3.selectAll(`#text-${node.data.ID}`).style("fill", "red")
                 nodeMap[node.data.ID].children = (node.children?.length == 0) ? [] : node.children;
                 selectorString = selectorString.concat(",", `.${node.data.value.replace(/\s/g, "-")}`);
 
@@ -650,32 +659,18 @@ export async function render(
                     path.style("stroke", "red");
                     currentPath.push(currentNode);
                     currentParent = currentNode.parent;
-                    d3.selectAll(`#rect-${currentNode.data.ID}`).style("stroke", "red");
                     currentNode = currentParent;
 
                 }
-                d3.selectAll(`#rect-${currentNode.data.ID}`).style("stroke", "red");
             }
         });
-
-        /**
-         * Mark the nodes included in the
-         * generated selector string
-         */
-        //if (selectorString !== "") {
-        //    let selected = d3.selectAll(selectorString.substring(1));
-        //    let selectedRect = selected.filter(".node-rectangle");
-        //    selectedRect.style("stroke", "red");
-        //}
-        
-        let newRoot;
 
         /**
          * Remove children from nodes that
          * aren't included in the search so we
          * can collapse parts of the tree.
          */
-        if (COLLAPSE) {
+        if (collapse && matchFound) {
             allNodes.forEach((node: any) => {
                 node.data._children = nodeMap[node.data.ID].data._children;
                 node._children = nodeMap[node.data.ID]._children;
@@ -686,17 +681,14 @@ export async function render(
                     node.children = nodeMap[node.data.ID].children;
                     node.data.children = nodeMap[node.data.ID].data.children;
                 }
-                if (node.data.ID == "1") {
-                    newRoot = node;
-                }
             });
         }
         // Handle the collapse case
         //reBuildNodes(newRoot);
         // Will have to traverse all nodes
 
-        update(newRoot, true);
-        //update(root, true);
+        //update(newRoot, true);
+        update(root, true);
     }
 
     function updateColumnPicker(root : any) {
@@ -727,75 +719,75 @@ export async function render(
     /**
      * Draws rectangular selection
      */
-    function drawRectangularSelection() {
-        function drawRectangle(x: number, y: number, w: number, h: number) {
-            return "M" + [x, y] + " l" + [w, 0] + " l" + [0, h] + " l" + [-w, 0] + "z";
-        }
-
-        const rectangle = svg.append("path").attr("class", "rectangle").attr("visibility", "hidden");
-
-        const startSelection = function (start: [number, number]) {
-            rectangle.attr("d", drawRectangle(start[0], start[0], 0, 0)).attr("visibility", "visible");
-        };
-
-        const moveSelection = function (start: [number, number], moved: [number, number]) {
-            rectangle.attr("d", drawRectangle(start[0], start[1], moved[0] - start[0], moved[1] - start[1]));
-        };
-
-        const endSelection = function (start: [number, number], end: [number, number]) {
-            rectangle.attr("visibility", "hidden");
-
-            // Ignore rectangular markings that were just a click.
-            if (Math.abs(start[0] - end[0]) < 2 || Math.abs(start[1] - end[1]) < 2) {
-                if (
-                    d3.select(d3.event.target.parentNode).classed("node-blobs") ||
-                    d3.select(d3.event.target).classed("line-hover line-hover-bg")
-                ) {
-                    return;
-                }
-                // return data.clearMarking();
-                return null;
-            }
-
-            // const selectionBox = rectangle.node()!.getBoundingClientRect();
-            // const svgMarkedNodes = svg.selectAll<SVGCircleElement, Point>(".node-blobs").filter(function () {
-            //     const box = this.getBoundingClientRect();
-            //     return (
-            //         box.x >= selectionBox.x &&
-            //         box.y >= selectionBox.y &&
-            //         box.x + box.width <= selectionBox.x + selectionBox.width &&
-            //         box.y + box.height <= selectionBox.y + selectionBox.height
-            //     );S
-            // });
-
-            // if (svgMarkedNodes.size() === 0) {
-            //     return data.clearMarking();
-            // }
-
-            // svgMarkedNodes.each(mark);
-        };
-
-        svg.on("mousedown", function (this) {
-            onSelection(true);
-            if (d3.event.which === 3) {
-                return;
-            }
-            let subject = d3.select(window),
-                start = d3.mouse(this);
-            startSelection(start);
-            subject
-                .on("mousemove.rectangle", function () {
-                    moveSelection(start, d3.mouse(svg.node()!));
-                })
-                .on("mouseup.rectangle", function () {
-                    endSelection(start, d3.mouse(svg.node()!));
-                    subject.on("mousemove.rectangle", null).on("mouseup.rectangle", null);
-                });
-        });
-        svg.on("mouseup", function (this) {
-            onSelection(false);
-        });
-    }
+    //function drawRectangularSelection() {
+    //    function drawRectangle(x: number, y: number, w: number, h: number) {
+    //        return "M" + [x, y] + " l" + [w, 0] + " l" + [0, h] + " l" + [-w, 0] + "z";
+    //    }
+//
+    //    const rectangle = svg.append("path").attr("class", "rectangle").attr("visibility", "hidden");
+//
+    //    const startSelection = function (start: [number, number]) {
+    //        rectangle.attr("d", drawRectangle(start[0], start[0], 0, 0)).attr("visibility", "visible");
+    //    };
+//
+    //    const moveSelection = function (start: [number, number], moved: [number, number]) {
+    //        rectangle.attr("d", drawRectangle(start[0], start[1], moved[0] - start[0], moved[1] - start[1]));
+    //    };
+//
+    //    const endSelection = function (start: [number, number], end: [number, number]) {
+    //        rectangle.attr("visibility", "hidden");
+//
+    //        // Ignore rectangular markings that were just a click.
+    //        if (Math.abs(start[0] - end[0]) < 2 || Math.abs(start[1] - end[1]) < 2) {
+    //            if (
+    //                d3.select(d3.event.target.parentNode).classed("node-blobs") ||
+    //                d3.select(d3.event.target).classed("line-hover line-hover-bg")
+    //            ) {
+    //                return;
+    //            }
+    //            // return data.clearMarking();
+    //            return null;
+    //        }
+//
+    //        // const selectionBox = rectangle.node()!.getBoundingClientRect();
+    //        // const svgMarkedNodes = svg.selectAll<SVGCircleElement, Point>(".node-blobs").filter(function () {
+    //        //     const box = this.getBoundingClientRect();
+    //        //     return (
+    //        //         box.x >= selectionBox.x &&
+    //        //         box.y >= selectionBox.y &&
+    //        //         box.x + box.width <= selectionBox.x + selectionBox.width &&
+    //        //         box.y + box.height <= selectionBox.y + selectionBox.height
+    //        //     );S
+    //        // });
+//
+    //        // if (svgMarkedNodes.size() === 0) {
+    //        //     return data.clearMarking();
+    //        // }
+//
+    //        // svgMarkedNodes.each(mark);
+    //    };
+//
+    //    svg.on("mousedown", function (this) {
+    //        onSelection(true);
+    //        if (d3.event.which === 3) {
+    //            return;
+    //        }
+    //        let subject = d3.select(window),
+    //            start = d3.mouse(this);
+    //        startSelection(start);
+    //        subject
+    //            .on("mousemove.rectangle", function () {
+    //                moveSelection(start, d3.mouse(svg.node()!));
+    //            })
+    //            .on("mouseup.rectangle", function () {
+    //                endSelection(start, d3.mouse(svg.node()!));
+    //                subject.on("mousemove.rectangle", null).on("mouseup.rectangle", null);
+    //            });
+    //    });
+    //    svg.on("mouseup", function (this) {
+    //        onSelection(false);
+    //    });
+    //}
 }
 
 function handleZoom() {

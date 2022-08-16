@@ -1,5 +1,4 @@
 import * as d3 from "d3";
-import { style } from "d3";
 
 export interface ChartSize {
     height: number;

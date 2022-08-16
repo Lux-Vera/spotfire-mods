@@ -94,13 +94,19 @@ body {
 }
 
 .search-input {
+    display: flex;
+    flex-direction: column;
     position: absolute;
     top: 0;
     left: 0;
 }
 
+#collapse {
+    align-self: start;
+}
+
 .column-picker-container {
     position: absolute;
-    top: 24px;
+    top: 44px;
     left: 0;
 }

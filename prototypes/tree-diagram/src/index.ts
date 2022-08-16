@@ -1,6 +1,6 @@
 import { render } from "./render";
 import { Nodes} from "./series";
-import { DataTable, DataView, Mod, DataViewRow, ModProperty } from "spotfire-api";
+import { DataView, Mod, DataViewRow, ModProperty } from "spotfire-api";
 import { createTree, generateDimensions } from "./helper";
 // var events = require("events");
 
@@ -191,45 +191,45 @@ async function getData(dataView : DataView) : Promise<Nodes[]> {
 
 }
 
-function renderSettingsButton(mod: Mod, showInfoBox: ModProperty<boolean>, showRootPath: ModProperty<boolean>) {
-    let settingsButton = document.querySelector<HTMLElement>(".settings");
-    settingsButton?.classList.toggle("visible", mod.getRenderContext().isEditing);
-    let pos = settingsButton!.getBoundingClientRect();
-
-    settingsButton!.onclick = () => {
-        mod.controls.popout.show(
-            {
-                x: pos.left + pos.width / 2,
-                y: pos.top + pos.height,
-                autoClose: true,
-                alignment: "Top",
-                onChange(event) {
-                    if (event.name == "showInfoBox") {
-                        showInfoBox.set(event.value);
-                    }
-                    if (event.name == "showRootPath") {
-                        showRootPath.set(event.value);
-                    }
-                }
-            },
-            () => [
-                mod.controls.popout.section({
-                    children: [
-                        mod.controls.popout.components.checkbox({
-                            enabled : true,
-                            name : "showInfoBox",
-                            checked: showInfoBox.value() || false,
-                            text: "Show Info Box"
-                        }),
-                        mod.controls.popout.components.checkbox({
-                            enabled: true,
-                            name: "showRootPath",
-                            checked: showRootPath.value() || false,
-                            text: "Show root path"
-                        })
-                    ]
-                })
-            ]
-        );
-    };
-}
+//function renderSettingsButton(mod: Mod, showInfoBox: ModProperty<boolean>, showRootPath: ModProperty<boolean>) {
+//    let settingsButton = document.querySelector<HTMLElement>(".settings");
+//    settingsButton?.classList.toggle("visible", mod.getRenderContext().isEditing);
+//    let pos = settingsButton!.getBoundingClientRect();
+//
+//    settingsButton!.onclick = () => {
+//        mod.controls.popout.show(
+//            {
+//                x: pos.left + pos.width / 2,
+//                y: pos.top + pos.height,
+//                autoClose: true,
+//                alignment: "Top",
+//                onChange(event) {
+//                    if (event.name == "showInfoBox") {
+//                        showInfoBox.set(event.value);
+//                    }
+//                    if (event.name == "showRootPath") {
+//                        showRootPath.set(event.value);
+//                    }
+//                }
+//            },
+//            () => [
+//                mod.controls.popout.section({
+//                    children: [
+//                        mod.controls.popout.components.checkbox({
+//                            enabled : true,
+//                            name : "showInfoBox",
+//                            checked: showInfoBox.value() || false,
+//                            text: "Show Info Box"
+//                        }),
+//                        mod.controls.popout.components.checkbox({
+//                            enabled: true,
+//                            name: "showRootPath",
+//                            checked: showRootPath.value() || false,
+//                            text: "Show root path"
+//                        })
+//                    ]
+//                })
+//            ]
+//        );
+//    };
+//}

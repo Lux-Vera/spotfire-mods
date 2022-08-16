@@ -1,5 +1,4 @@
 import * as d3 from "d3";
-import { Node } from "./render";
 import { Nodes } from "./series";
 import { getAllNodes, compareNodes } from "./helper";
 import { Tooltip } from "spotfire-api";
@@ -243,8 +242,8 @@ function generateCallSite(
     });
 }
 
-function getCallSites(d: d3.HierarchyPointNode<Node>): d3.HierarchyPointNode<Node>[][] {
-    let sites: d3.HierarchyPointNode<Node>[][] = [];
+function getCallSites(d: d3.HierarchyPointNode<Nodes>): d3.HierarchyPointNode<Nodes>[][] {
+    let sites: d3.HierarchyPointNode<Nodes>[][] = [];
     let allNodes = getAllNodes(d);
     allNodes.forEach((node) => {
         if (compareNodes(node, d)) {
